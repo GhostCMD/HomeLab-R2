@@ -1,11 +1,15 @@
 ---
 - name: Bootstrap Ansible Node
-  hosts: Bootstrap
+  hosts: BootStrap
   become: true
   tasks:
     - name: Add Docker group
       group:
         name: docker
+        state: present
+    - name: Add libvirt group
+      group:
+        name: libvirt
         state: present
     - name: SeLinuxPython [dnf]
       when: ansible_facts['distribution'] == "Fedora"
@@ -32,13 +36,23 @@
         state: present
         line: "Ansible-Local  ALL=(ALL)       NOPASSWD: ALL"
         validate: /usr/sbin/visudo -cf %s
+    - name: "Make .ssh Key"   
+      file:
+        path: "/home/Ansible-Local/.ssh/"
+        state: directory
+        owner: Ansible-Local
+        group: Ansible-Local
+        mode: "0700"
     - name: Make Authorised Key
       become: true
-      become_user: Ansible-Local
+      become_user: root      
       file:
         path: "/home/Ansible-Local/.ssh/authorized_keys"
         state: touch
+        owner: Ansible-Local
+        group: Ansible-Local
+        mode: "0600"
     - name: Add Publickey
       lineinfile:
         path: "/home/Ansible-Local/.ssh/authorized_keys"
-        line: "{{ ansible-local-pubkey }}"
+        line: "{{ ansible-Local-Pubkey }}"

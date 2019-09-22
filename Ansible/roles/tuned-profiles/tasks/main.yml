@@ -1,0 +1,18 @@
+
+- name: DNF tuned perf
+  when: ansible_facts['distribution'] == "Fedora"
+  dnf:
+    name: ['tuned','tuned-profiles-realtime','hwloc']
+    state: latest
+
+- name: YUM tuned perf
+  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution'] != "Fedora"
+  yum:
+    name: ['tuned','tuned-profiles-realtime','hwloc']
+    state: latest
+
+- name: Systemctl tuned service
+  cmd: systemctl start tuned.service
+
+- name: tuned-adm activated
+  cmd: tuned-adm profile latency-performance virtual-host

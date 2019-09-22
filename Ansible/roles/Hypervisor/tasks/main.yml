@@ -16,3 +16,11 @@
   apt: 
     name: ['qemu-kvm', 'libvirt-clients', 'libvirt-daemon-system', 'bridge-utils']
     state: latest
+
+- name: XML Backup folder
+  file:
+    path: /opt/KVM-XML
+    owner: qemu
+    group: libvirt
+    mode: "0760"
+    state: directory
