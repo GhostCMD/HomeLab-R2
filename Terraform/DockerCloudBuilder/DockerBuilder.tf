@@ -1,7 +1,8 @@
 resource "digitalocean_ssh_key" "Terraform" {
-  name       = "Terraform Example"
-  public_key = "${file("/home/_Tibbles__/.ssh/Terraform.pub")}"
+  name       = "Terraform"
+  public_key = "${file(var.sshPublic)}"
 }
+
 resource "digitalocean_droplet" "DockerBuilder"{
     image = "ubuntu-18-04-x64"
     name = "Builder"
@@ -11,16 +12,21 @@ resource "digitalocean_droplet" "DockerBuilder"{
     monitoring = true
     ipv6 = false 
     ssh_keys = [
-      "${digitalocean_ssh_key.Terraform.fingerprint}"
+      "${digitalocean_ssh_key.Terraform.fingerprint}","77:c9:04:70:c1:15:47:a0:0d:34:08:35:61:54:33:2b","ee:63:7e:7e:87:42:9b:4d:bc:ad:59:09:27:6d:78:99"
+#        "f7:43:60:f3:67:ab:ba:b7:3d:7d:c7:a1:f3:3d:0d:7c"
     ]
-    tags = ["Terraform"]
-    
+    tags = ["Terraform","Tempory"]
+    connection {
+      type     = "ssh"
+      user     = "root"
+      private_key = "${file(var.sshPrivate)}"
+      host     = "${self.ipv4_address}"
+    }
+
     provisioner "remote-exec" {
-        inline = [ " Date > /InitDateTime.txt"]
+        inline = [ "date > /InitDateTime.txt" ]
     }
-    provisioner "local-exec" {
-    command = "ansible-playbook -i '${self.ipv4_address},' --private-key ${var.pvt_key}  DockerBuilder.yml"
-    }
+    
 }
 resource "digitalocean_record" "DockerBuilder_DNS" {
   domain = "ghostlink.net"
