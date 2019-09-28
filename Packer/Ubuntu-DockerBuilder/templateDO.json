@@ -1,0 +1,11 @@
+{
+  "builders": [
+    {
+      "type": "digitalocean",
+      "api_token": "{{ user `my_token` }}",
+      "ssh_username": "root",
+      "size":"s-1vcpu-1gb",
+      "image": "ubuntu-19-04-x64",
+      "region": "lon1"
+    }]
+}

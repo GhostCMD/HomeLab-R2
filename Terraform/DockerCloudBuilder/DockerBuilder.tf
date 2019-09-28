@@ -7,7 +7,7 @@ resource "digitalocean_droplet" "DockerBuilder"{
     image = "ubuntu-18-04-x64"
     name = "Builder"
     region = "lon1"
-    size = "s-2vcpu-4gb"
+    size = "s-4vcpu-8gb"
     private_networking = false
     monitoring = true
     ipv6 = false 
