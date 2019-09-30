@@ -6,19 +6,40 @@ resource "digitalocean_droplet" "ShellLink" {
   monitoring = true
   ipv6 = false
   ssh_keys = [
-      "${digitalocean_ssh_key.Terraform.fingerprint}",
+      "${data.digitalocean_ssh_key.Terraform.fingerprint}",
+      "${data.digitalocean_ssh_key.Ipad.fingerprint}",
+      "${data.digitalocean_ssh_key.Iphone.fingerprint}",
+      "${data.digitalocean_ssh_key.WebApplications.fingerprint}",
+      "${data.digitalocean_ssh_key.Miho.fingerprint}"
+
   ]
   tags = [ "Terraform", "cnc", "Mobile"]
   connection {
     type     = "ssh"
     user     = "root"
-    private_key = "${file(var.pvt_key)}"
+    private_key = "${file(var.sshPrivate)}"
     host     = "${self.ipv4_address}"
   }
   provisioner "remote-exec" {
-    inline = [ "date > /InitDateTime.txt",
-	" sudo dnf update -y",
-	" dnf install screen -y "
-	]
+    inline = [ "date > /InitDateTime.txt"]
   }
+  provisioner "local-exec"{
+    command = " echo -e \"[remote] \\n ${self.ipv4_address} \" > ShellLinkIP"
+  }
+  provisioner "local-exec"{
+    command = " ./MoveDots.sh"
+  }
+  provisioner "local-exec" {
+    command = " ansible-playbook -i ShellLinkIP  -u root --private-key ${var.sshPrivate} --ssh-extra-args -\"o StrictHostKeyChecking=no\"  ../../Ansible/provisionShellLink.yml" 
+  }
+
+  provisioner "local-exec"{
+    command = "rm -rf /tmp/ShellLinkData"
+  }
+}
+resource "digitalocean_record" "ShellLink_DNS" {
+  domain = "ghostlink.net"
+  type   = "A"
+  name   = "ShellLink"
+  value  = "${digitalocean_droplet.ShellLink.ipv4_address}"
 }

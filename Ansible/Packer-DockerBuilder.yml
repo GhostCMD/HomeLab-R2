@@ -1,0 +1,24 @@
+---
+- name: Docker Cloud Builder
+  hosts: all:!Link0
+  roles:
+    - Service-Account
+  tasks:
+    - name: ensure multiverse
+      shell: "apt-get update; apt-add-repository universe -y"
+      async: 120
+      poll: 180
+      args:
+        warn: no
+    - name: packages to install
+      apt:
+        name: "{{ item }}"
+        state: latest
+      loop:      
+        - git      
+        - htop
+        - screen
+        - docker.io
+        - netdata
+      
+    

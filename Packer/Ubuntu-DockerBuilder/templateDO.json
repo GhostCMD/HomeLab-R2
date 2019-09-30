@@ -1,11 +1,22 @@
 {
+  "variables": {
+    "do_api_token": "{{env `TF_VAR_DIGITALOCEAN_TOKEN`}}"
+  },
+
   "builders": [
     {
       "type": "digitalocean",
-      "api_token": "{{ user `my_token` }}",
+      "api_token": "{{ user `do_api_token` }}",
       "ssh_username": "root",
       "size":"s-1vcpu-1gb",
       "image": "ubuntu-19-04-x64",
-      "region": "lon1"
-    }]
+      "region": "lon1",
+      "snapshot_name": "DockerBuilder"
+    }],
+    "provisioners": [
+      {
+        "type": "ansible",
+        "playbook_file": "../../Ansible/Packer-DockerBuilder.yml"
+      }
+    ]
 }

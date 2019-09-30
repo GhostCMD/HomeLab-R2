@@ -2,9 +2,21 @@ resource "digitalocean_ssh_key" "Terraform" {
   name       = "Terraform"
   public_key = "${file(var.sshPublic)}"
 }
+data "digitalocean_image" "Docker-Builder" {
+  name = "DockerBuilder"
+}
 
+data "digitalocean_ssh_key" "Miho" {
+  name = "Miho"
+}
+data "digitalocean_ssh_key" "Iphone" {
+  name = "Iphone"
+}
+data "digitalocean_ssh_key" "Ipad" {
+  name = "Ipad"
+}
 resource "digitalocean_droplet" "DockerBuilder"{
-    image = "ubuntu-18-04-x64"
+    image = "${data.digitalocean_image.Docker-Builder.image}}"
     name = "Builder"
     region = "lon1"
     size = "s-4vcpu-8gb"
@@ -12,8 +24,10 @@ resource "digitalocean_droplet" "DockerBuilder"{
     monitoring = true
     ipv6 = false 
     ssh_keys = [
-      "${digitalocean_ssh_key.Terraform.fingerprint}","77:c9:04:70:c1:15:47:a0:0d:34:08:35:61:54:33:2b","ee:63:7e:7e:87:42:9b:4d:bc:ad:59:09:27:6d:78:99"
-#        "f7:43:60:f3:67:ab:ba:b7:3d:7d:c7:a1:f3:3d:0d:7c"
+      "${digitalocean_ssh_key.Terraform.fingerprint}",
+      "${data.digitalocean_ssh_key.Ipad.fingerprint}",
+      "${data.digitalocean_ssh_key.Iphone.fingerprint}",
+      "${data.digitalocean_ssh_key.Miho.fingerprint}"
     ]
     tags = ["Terraform","Tempory"]
     connection {
