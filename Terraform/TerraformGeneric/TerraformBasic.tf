@@ -30,7 +30,7 @@ resource "digitalocean_droplet" "ShellLink" {
     command = " ./MoveDots.sh"
   }
   provisioner "local-exec" {
-    command = " ansible-playbook -i ShellLinkIP  -u root --private-key ${var.sshPrivate} --ssh-extra-args -\"o StrictHostKeyChecking=no\"  ../../Ansible/provisionShellLink.yml" 
+    command = " ansible-playbook -i ShellLinkIP  -u root --private-key ${var.sshPrivate} --ssh-extra-args \"-o StrictHostKeyChecking=no\"  ../../Ansible/provisionShellLink.yml" 
   }
 
   provisioner "local-exec"{

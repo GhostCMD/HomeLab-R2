@@ -18,6 +18,7 @@
       vars:
         packages:
           - ansible
+          - vim
           - git
           - go
           - htop
@@ -26,6 +27,10 @@
           - python3-pip
           - docker
           - unzip
+          - cmake
+          - gcc-c++
+          - make
+          - python3-devel
     - name: Add ShellLink Local User GhostShell
       user:
         name: GhostShell
@@ -69,15 +74,25 @@
         line: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCxGkUItxk9179CE99yW5MJk55a29fQKfjnIZa4pcwv4ZVDOdctmjjGYURlW1FTK02W+Zi0ANDI1L3XEt1UFFsyU1PtcgmiELHkALELYwT0DIXt8eDMrf703gr7rQKiKjV5FcrPW1d5poPmh/33/QvRzfyZDY+gkIRVJavsamCR63Qk/GWMEPqi6CF/hhqlczUBcayUPJgUH9brQRtDa92l7nTNnQGNkRcnw/Q692OiU0Vd5BiEBqU97uftPeUZdNdJ2K198P6wVMb7pJNeRTBHo+Z9A/kHNUZSFXLJ7VCP/+nJBsGjiS4IEfj5oGPGeUJWYBR8gvOPf+JHrHuq28TPsPAzTw94Gqh1Q0C0sGwxO3iL783GW10XGNI2wbVeQ7w7bRPgqZXVD1ixV5g0bDcqGdiHKA/SQOWOiryYke1Ji04UIaJIGEt7Uqo99pfle527cT7XLLF6Fx7yD80Ckh8VyS8mZfnivhVOnhBby1yho7XW/Qe6oG8OfBHUfbU27q45MCYxKmrxbaZykvEJ90nLqjEf2mP36RhwAxqO1GZinRmmYpnR9zko8qygaNzPGkJFUVv73T0ZZPNmG/rXT4HlyVkz/wbFonf6nciTSTW6W7tbre8SLuMqrDomv7Kx8IE2G3hFVkW+Bl8f8tYPuk5VGKlFvpMETQ5WKmR2m8fy4Q=="
 
     - git:
-        repo: "https://github.com/GhostCMD/HomeLab-R2.git"
+        repo: "https://github.com/GlitchWraith/HomeLab-R2.git"
         dest: /home/GhostShell/GitHub/HomeLab-R2
+        update: yes
+    - git:
+        repo: "https://github.com/VundleVim/Vundle.vim.git"
+        dest: /home/GhostShell/.vim/bundle/Vundle.vim
         update: yes
     - file:
         path: "/home/GhostShell/GitHub/HomeLab-R2"
         state: directory 
         owner: GhostShell
         group: GhostShell
-        mode: "0770"
+        recurse: yes
+    - file:
+        path: "/home/GhostShell/.vim"
+        state: directory
+        owner: GhostShell
+        group: GhostShell
+        recurse: yes
     - name: Copy local bashrc
       copy:
         src: /tmp/ShellLinkDots/.bashrc
@@ -91,7 +106,13 @@
         src: /tmp/ShellLinkDots/.vimrc 
         dest: /home/GhostShell/.vimrc 
         owner: GhostShell
-        group: GhostShell 
+        group: GhostShell
+    - name: Copy Postinstall Script 
+      copy:
+        src: Files/PostInstall.sh 
+        dest: /home/GhostShell/PostInstall.sh
+        owner: GhostShell
+        group: GhostShell  
     - name: ".ssh/config"    
       copy:
         src: /tmp/ShellLinkDots/.ssh/config 
@@ -117,11 +138,12 @@
     - name: alias Packer
       lineinfile:
         path: "/home/GhostShell/.bashrc"
-        line: " alias packer=\"/usr/bin/packer\" "
+        line: "alias packer=\"/usr/bin/packer\" "
     - name: alias Terraform
       lineinfile:
         path: "/home/GhostShell/.bashrc"
-        line: " alias packer=\"/usr/bin/terraform\" "
+        line: "alias terraform=\"/usr/bin/terraform\" "
+
 #    - name: remove root login
 #      lineinfile:
 #        dest: /etc/ssh/sshd_config
