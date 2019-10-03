@@ -1,0 +1,23 @@
+---
+- name: Test Pull
+  hosts: Test
+  vars:
+    folder_path: /mnt/Volumes
+    local_output_path: ../DontTrack/
+  tasks: 
+  #    - name: ensure find
+  #   dnf:
+  #     name: find
+  #     state: present
+    - name: Get Files to tranfer
+      shell:  "find -L {{ folder_path }} ! -type d 2>/dev/null"
+      register: file_paths
+    - debug:
+        msg: "{{ file_paths.stdout_lines }}"
+
+    - name: fetch files
+      fetch:
+        src: "{{ item }}"
+        dest: "{{ local_output_path }}/{{ ansible_hostname }}/{{ item }}"
+        flat: yes
+      loop: "{{ file_paths.stdout_lines|flatten(levels=1)  }}"

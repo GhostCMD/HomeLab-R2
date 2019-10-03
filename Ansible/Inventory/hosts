@@ -65,4 +65,7 @@ ansible-cloud=ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAEAQCa6LFwhsOz7tykqncVgxZtw4kca4
 
 [Cloud]
 
-
+[Test]
+test.dev.ghostlink.net
+[Test:vars]
+ansible_user=root
