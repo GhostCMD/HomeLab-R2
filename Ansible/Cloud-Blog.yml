@@ -1,0 +1,148 @@
+---
+- name: Build/Redeploy GhostWebsite
+  hosts: all:!Link0:remote
+  become: true
+  roles:
+    - Service-Account
+    - Containers-Docker   
+  tasks:
+    - name: Netdata Build Dependencys
+      dnf:
+        name: "{{ item }}"
+        state: latest
+      loop:
+        - zlib-devel 
+        - libuuid-devel
+        - libuv-devel
+        - lz4-devel
+        - Judy-devel
+        - openssl-devel
+        - libmnl-devel
+        - gcc
+        - make
+        - git
+        - autoconf
+        - autoconf-archive
+        - autogen
+        - automake
+        - pkgconfig
+        - curl
+        - findutils
+        - python2
+        - docker-compose
+        - screen
+    - name: Install Netdata
+      shell: "screen -d -m \"bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait\" "
+#      async: 240
+#      poll: 0
+
+
+    - name: Docker net to localhost
+      docker_container:
+        image: qoomon/docker-host
+        capabilities:
+          - NET_ADMIN
+          - NET_RAW 
+        hostname: dockerhost
+        name: dockerhost
+        keep_volumes: yes
+        networks:
+          name: certed
+        restart_policy: unless-stopped
+        memory: 8M
+        memory_reservation: 6M
+
+    - name: nginx proxy
+      docker_container:
+        image: linuxserver/letsencrypt
+        capabilities:
+          - NET_ADMIN        
+        name: letsencrypt
+        keep_volumes: yes
+        networks:
+          name: certed
+        restart_policy: unless-stopped
+        memory: 512M
+        memory_reservation: 64M
+        ports:
+          - 443:443
+          - 80:80
+        volumes:
+          - /mnt/dockervolume/proxy/:/config
+        environment:
+          - PUID=1000
+          - PGID=1000
+          - TZ=Europe/London
+          - URL=ghostlink.net
+          - VALIDATION=http      
+          - STAGING=false #optional
+          - EMAIL=Service@ghostlink.net
+
+    - name: ghost
+      docker_container:
+        image: ghost:latest
+        cap_drop:
+          - all        
+        name: blog
+        keep_volumes: yes
+        networks:
+          name: certed
+        restart_policy: unless-stopped
+        memory: 512M
+        memory_reservation: 128M
+        volumes:
+          - /mnt/dockervolume/data-ghost/:/var/lib/ghost/content
+        environment:
+          - url=https://www.ghostlink.net
+          - NODE_ENV=production
+
+    - name: Move proxy file
+      copy: 
+        dest: /mnt/dockervolume/proxy/nginx/site-confs/default
+        src: ./Files/blog/nginx/default
+        owner: 1000
+        group: 1000
+        mode: "0664"
+    - name: nginx proxy
+      docker_container:     
+        name: letsencrypt
+        restart: yes
+
+
+
+    - name: Iptables block netdata external
+      iptables:
+        chain: INPUT
+        destination_port: 19999
+        jump: DROP
+        comment: Stop netdata from external traffic
+        in_interface: eth0
+        action: insert
+
+
+    
+#    - firewalld:
+#        service: https
+#        permanent: yes
+#        state: enabled
+#    - firewalld:
+#        service: http
+#        permanent: yes
+#        state: enabled
+#    - firewalld:
+#        port: 19999/tcp
+#        permanent: yes
+#        state: disabled
+#        zone: public
+#    - firewalld:
+#        interface: "{{ item }}"
+#        zone: trusted
+#        state: present
+#        permanent: yes
+#      with_items: "{{ ansible_interfaces }}"
+#    - firewalld:
+#        interface: "eth0"
+#        zone: public
+#        state: present
+#        permanent: yes
+#        immediate: yes

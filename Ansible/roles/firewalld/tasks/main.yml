@@ -1,0 +1,8 @@
+- name: install firewalld
+  dnf:
+    name: firewalld
+    state: latest
+- name: enable firewalld
+  command: "systemctl enable firewalld"
+- name: start firewalld
+  command: "systemctl start firewalld"

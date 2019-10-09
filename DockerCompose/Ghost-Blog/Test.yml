@@ -1,0 +1,58 @@
+version: "3"
+
+networks:
+  web:
+    external: true
+  internal:
+    external: false
+
+services:
+  blog:
+    image: ghost:latest
+    environment:
+      - url=https://www.ghostlink.net
+      - NODE_ENV=production
+    labels:
+      - traefik.backend=blog
+      - traefik.frontend.rule=Host:('ghostlink.net')
+      - traefik.frontend.rule=Host:('https://ghostlink.net')
+#      - traefik.http.routers.blog.rule=Host(`ghostlink.net`)
+#      - traefik.https.routers.blog.rule=Host(`ghostlink.net`)
+      - "traefik.http.routers.myrouter.rule=Host(`ghostlink.net`)"
+      - "traefik.http.routers.myproxy.rule=Host(`ghostlink.net`)"
+      - "traefik.http.services.blog.loadbalancer.server.port=80"
+      - "traefik.http.services.blog.loadbalancer.server.port=443"
+      - traefik.docker.network=web
+      - traefik.port=2368
+      - traefik.enable=true
+    networks:
+      - internal
+      - web
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - "/mnt/dockervolume/data-ghost/:/var/lib/ghost/content"
+  Routing:
+    image: traefik:v2.0
+    command:
+      - "--providers.docker=true"
+      - "--providers.docker.network=web"      
+      - "--providers.docker.exposedbydefault=false"
+      - "--api.insecure=true"
+      - "--entrypoints.web.address=\":80\" "
+      - "--entrypoints.websecure.address=\":443\" "
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    labels:
+      - traefik.frontend.rule=Host:('monitor.prod.ghostlink.net')
+      - traefik.docker.network=web
+      - traefik.port=8080
+    networks:
+      - internal
+      - web
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /mnt/dockervolume/traefik/config.yml:/config.yml
+#      - /mnt/dockervolume/traefik/acme.json/:/acme.json

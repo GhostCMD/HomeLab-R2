@@ -1,0 +1,53 @@
+version: "2"
+
+services:
+  letsencrypt:
+    image: linuxserver/letsencrypt
+    container_name: letsencrypt
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - URL=ghostlink.net
+      - VALIDATION=http      
+      - STAGING=false #optional
+      - EMAIL=Service@ghostlink.net
+    volumes:
+      - /mnt/dockervolume/proxy/:/config
+    ports:
+      - 443:443
+      - 80:80 #optional
+    restart: unless-stopped
+    depends_on:
+      - blog
+      - dockerhost
+
+  blog:
+    image: ghost:latest
+    container_name: "blog"
+    hostname: blog
+    restart: always
+    environment:
+    - url=https://www.ghostlink.net
+    - NODE_ENV=production
+    volumes:
+    - "/mnt/dockervolume/data-ghost/:/var/lib/ghost/content"
+
+  dockerhost:
+    image: qoomon/docker-host
+    cap_add: 
+      - NET_ADMIN
+      - NET_RAW   
+    restart: unless-stopped
+  tcp_message_emitter:
+    depends_on: 
+      - dockerhost
+    image: alpine
+    command: [ "sh", "-c", "while :; do date; sleep 1; done | nc 'dockerhost' 2323 -v"]
+  udp_message_emitter:
+    depends_on:
+      - dockerhost
+    image: alpine
+    command: [ "sh", "-c", "while :; do date; sleep 1; done | nc 'dockerhost' 5353 -u -v"]

@@ -1,7 +1,7 @@
-resource "digitalocean_droplet" "ShellLink" {
+resource "digitalocean_droplet" "docker-blog" {
   image  = "fedora-30-x64"
-  name   = "ShellLink"
-  region = "lon1"
+  name   = "Docker-blog"
+  region = "fra1"
   size   = "s-1vcpu-1gb"
   monitoring = true
   ipv6 = false
@@ -13,7 +13,7 @@ resource "digitalocean_droplet" "ShellLink" {
       "${data.digitalocean_ssh_key.Miho.fingerprint}"
 
   ]
-  tags = [ "Terraform", "cnc", "Mobile"]
+  tags = [ "Terraform", "blog", "imutable"]
   connection {
     type     = "ssh"
     user     = "root"
@@ -24,22 +24,17 @@ resource "digitalocean_droplet" "ShellLink" {
     inline = [ "date > /InitDateTime.txt"]
   }
   provisioner "local-exec"{
-    command = " echo -e \"[remote] \\n ${self.ipv4_address} \" > ShellLinkIP"
-  }
-  provisioner "local-exec"{
-    command = " ./MoveDots.sh"
+    command = " echo -e \"[remote] \\n ${self.ipv4_address} \" > BLOG"
   }
   provisioner "local-exec" {
-    command = " ansible-playbook -i ShellLinkIP  -u root --private-key ${var.sshPrivate} --ssh-extra-args \"-o StrictHostKeyChecking=no\" --extra-var \"ansible_python_interpreter=/usr/bin/python3\" ../../Ansible/provisionShellLink.yml" 
+    command = " ansible-playbook -i BLOG  -u root --private-key ${var.sshPrivate} --ssh-extra-args \"-o StrictHostKeyChecking=no\"  --extra-var \"ansible_python_interpreter=/usr/bin/python3\" ../../Ansible/Cloud-Blog.yml" 
   }
 
-  provisioner "local-exec"{
-    command = "rm -rf /tmp/ShellLinkData"
-  }
+
 }
-resource "digitalocean_record" "ShellLink_DNS" {
+resource "digitalocean_record" "docker-blog" {
   domain = "ghostlink.net"
   type   = "A"
-  name   = "ShellLink"
-  value  = "${digitalocean_droplet.ShellLink.ipv4_address}"
+  name   = "@"
+  value  = "${digitalocean_droplet.docker-blog.ipv4_address}"
 }
