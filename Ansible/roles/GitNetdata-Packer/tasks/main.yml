@@ -1,0 +1,26 @@
+- name: "Installing Dependencys ( Dnf )"
+  become: true
+  when: ansible_facts['distribution'] == "Fedora"
+  dnf:
+    name: ['zlib-devel', 'libuuid-devel', 'libuv-devel', 'lz4-devel', 'Judy-devel', 'openssl-devel' ,'libmnl-devel', 'gcc' ,'make', 'git', 'autoconf' ,'autoconf-archive', 'autogen', 'automake', 'pkgconfig' ,'curl' ,'findutils', 'python', 'screen']
+    state: latest
+
+- name: "Installing Dependencys ( Yum )"
+  become: true
+  when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution'] != "Fedora"
+  yum:
+    name: [ 'autoconf', 'automake', 'curl', 'gcc' ,'git', 'libmnl-devel' ,'libuuid-devel' ,'openssl-devel', 'libuv-devel' ,'lz4-devel', 'Judy-devel', 'make' ,'nc' ,'pkgconfig', 'python' ,'zlib-devel', 'screen']
+    state: latest
+
+- name: "Installing Dependencys (apt Generic)" 
+  become: true
+  when: ansible_facts['os_family']|lower == 'debian'
+  apt:
+    name: [ 'zlib1g-dev', 'uuid-dev', 'libuv1-dev', 'liblz4-dev', 'libjudy-dev', 'libssl-dev' ,'libmnl-dev' ,'gcc', 'make', 'git', 'autoconf', 'autoconf-archive' ,'autogen', 'automake', 'pkg-config' ,'curl' ,'python', 'screen']
+    state: latest
+
+- name: Screen Kickstart Netdata
+  become: true
+  shell: "bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait"
+  async: 600
+  poll: 60

@@ -1,0 +1,22 @@
+---
+- name: Cloud Deploy
+  include_vars:
+    file: ../DontTrack/Ansible/Vars.yml
+  roles:
+    - GitNetdata
+  tasks:
+    - name: Pull service-gameservice-gmod-ttt
+      docker_image:
+        name: ghostlink/service-gameserver-gmod-ttt
+        source: pull
+    - name: Deploy Container
+      docker_container:
+        name: Service-GMod
+        image: ghostlink/service-gameserver-gmod-ttt
+        state: started
+        exposed_ports:
+          - "27015:27015"
+          - "27005:27005"
+        env_file: ../DontTrack/Env/Gmod-ttt.env
+        cap_drop:
+          - all

@@ -1,0 +1,12 @@
+---
+- name: Copy Containers into serviceLink
+  hosts: all:!Link0
+  tasks:
+    - name: Clone Repo
+      git:
+        repo: "git@github.com:GlitchWraith/Containers.git"
+        dest: /home/ServiceLink/GitHub/Containers
+        clone: yes
+        update: yes
+        track_submodules: yes
+        recursive: yes

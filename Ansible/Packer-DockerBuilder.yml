@@ -3,6 +3,7 @@
   hosts: all:!Link0
   roles:
     - Service-Account
+#    - GitNetdata
   tasks:
     - name: ensure multiverse
       shell: "apt-get update; apt-add-repository universe -y"
@@ -14,11 +15,15 @@
       apt:
         name: "{{ item }}"
         state: latest
-      loop:      
-        - git      
+      loop:
+        - git
         - htop
         - screen
         - docker.io
-        - netdata
-      
-    
+    - name: Make Github Folder for ServiceLink
+      file:
+        path: /home/ServiceLink/GitHub
+        owner: ServiceLink
+        group: ServiceLink
+        state: directory
+        mode: "0770"
