@@ -20,6 +20,7 @@
         - htop
         - screen
         - docker.io
+        - zsh
     - name: Make Github Folder for ServiceLink
       file:
         path: /home/ServiceLink/GitHub
@@ -27,3 +28,7 @@
         group: ServiceLink
         state: directory
         mode: "0770"
+    - name: Change ServiceLink Shell
+      user:
+        name: ServiceLink
+        shell: /bin/zsh

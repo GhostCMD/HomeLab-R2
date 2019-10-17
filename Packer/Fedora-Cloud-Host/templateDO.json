@@ -1,0 +1,23 @@
+{
+    "variables": {
+      "do_api_token": "{{env `TF_VAR_DIGITALOCEAN_TOKEN`}}"
+    },
+  
+    "builders": [
+      {
+        "type": "digitalocean",
+        "api_token": "{{ user `do_api_token` }}",
+        "ssh_username": "root",
+        "size":"s-1vcpu-1gb",
+        "image": "fedora-30-x64",
+        "region": "fra1",
+        "snapshot_name": "Primary"
+      }],
+      "provisioners": [
+        {
+          "type": "ansible",
+          "playbook_file": "../../Ansible/Packer-Base.yml"
+        }
+      ]
+  }
+  

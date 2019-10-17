@@ -16,8 +16,8 @@ services:
       - traefik.backend=blog
       - traefik.frontend.rule=Host:('ghostlink.net')
       - traefik.frontend.rule=Host:('https://ghostlink.net')
-#      - traefik.http.routers.blog.rule=Host(`ghostlink.net`)
-#      - traefik.https.routers.blog.rule=Host(`ghostlink.net`)
+      #      - traefik.http.routers.blog.rule=Host(`ghostlink.net`)
+      #      - traefik.https.routers.blog.rule=Host(`ghostlink.net`)
       - "traefik.http.routers.myrouter.rule=Host(`ghostlink.net`)"
       - "traefik.http.routers.myproxy.rule=Host(`ghostlink.net`)"
       - "traefik.http.services.blog.loadbalancer.server.port=80"
@@ -35,11 +35,11 @@ services:
     image: traefik:v2.0
     command:
       - "--providers.docker=true"
-      - "--providers.docker.network=web"      
+      - "--providers.docker.network=web"
       - "--providers.docker.exposedbydefault=false"
       - "--api.insecure=true"
-      - "--entrypoints.web.address=\":80\" "
-      - "--entrypoints.websecure.address=\":443\" "
+      - '--entrypoints.web.address=":80" '
+      - '--entrypoints.websecure.address=":443" '
     ports:
       - "80:80"
       - "443:443"

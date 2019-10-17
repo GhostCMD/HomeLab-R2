@@ -36,6 +36,9 @@ resource "digitalocean_droplet" "ShellLink" {
   provisioner "local-exec"{
     command = "rm -rf /tmp/ShellLinkData"
   }
+  provisioner "local-exec"{
+    command = "scp -i $HOME/.ssh/WebApplications  $HOME/.ssh/Terraform.pub  GhostShell@ShellLink.ghostlink.net:/home/GhostShell/.ssh/Terraform.pub; scp -i $HOME/.ssh/WebApplications  $HOME/.ssh/Terraform  GhostShell@ShellLink.ghostlink.net:/home/GhostShell/.ssh/Terraform"
+  }
 }
 resource "digitalocean_record" "ShellLink_DNS" {
   domain = "ghostlink.net"

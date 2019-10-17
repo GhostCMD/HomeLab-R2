@@ -40,11 +40,20 @@ resource "digitalocean_droplet" "DockerBuilder"{
     provisioner "remote-exec" {
         inline = [ "date > /InitDateTime.txt" ]
     }
+
+     provisioner "local-exec" {
+        command = "echo -e \"[remote] \\n ${self.ipv4_address} \" > hosts"
+    }
+
+    provisioner "local-exec" {
+      command = " #ansible-playbook -i hosts  -u ServiceLink --private-key ${var.sshPrivateService} --ssh-extra-args \"-o StrictHostKeyChecking=no\" --extra-var \"ansible_python_interpreter=/usr/bin/python3\" ../../Ansible/Terraform-Clone-Containers.yaml" 
+    }
     
 }
 resource "digitalocean_record" "DockerBuilder_DNS" {
   domain = "ghostlink.net"
   type   = "A"
   name   = "builder.dev"
+  ttl    = "600"
   value  = "${digitalocean_droplet.DockerBuilder.ipv4_address}"
 }
