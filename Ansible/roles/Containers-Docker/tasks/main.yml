@@ -1,13 +1,17 @@
 - name: "Installing Docker (dnf)" 
   when: ansible_facts['distribution'] == "Fedora"
   dnf:
-    name: docker
+    name: 
+      - docker
+      - docker-compose
     state: latest
 
 - name: "Installing Docker (yum)" 
   when: ansible_facts['os_family'] == "RedHat" and ansible_facts['distribution'] != "Fedora"
   yum:
-    name: docker
+    name: 
+      - docker
+      - docker-compose
     state: latest
 
 - name: "Installing Docker (apt Generic)" 

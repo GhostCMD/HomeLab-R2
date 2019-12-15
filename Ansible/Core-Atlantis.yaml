@@ -1,0 +1,134 @@
+- name: Build/Redeploy Atlantis
+  hosts: Atlantis
+  become: true
+  vars:
+    nmcli_ethernet:
+    - conn_name: eno1
+      ifname: eno1
+      ip4: "10.1.2.2/24"
+      gw4: '10.1.2.1/24'
+    - conn_name: eno2
+      ifname: eno2
+      ip4: "10.1.1.10/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno2
+      ifname: eno2
+      ip4: "10.1.1.11/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno2
+      ifname: eno2
+      ip4: "10.1.1.12/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno2
+      ifname: eno2
+      ip4: "10.1.1.13/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno2
+      ifname: eno2
+      ip4: "10.1.1.14/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno2
+      ifname: eno2
+      ip4: "10.1.1.15/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno2
+      ifname: eno2
+      ip4: "10.1.1.16/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno2
+      ifname: eno2
+      ip4: "10.1.1.17/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno2
+      ifname: eno2
+      ip4: "10.1.1.18/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno2
+      ifname: eno2
+      ip4: "10.1.1.19/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno3
+      ifname: eno3
+      ip4: "10.100.100.1/16"
+      gw4: "10.100.1.1/16"
+    - conn_name: eno3
+      ifname: eno3
+      ip4: "10.100.100.2/16"
+      gw4: "10.100.1.1/16"
+    - conn_name: eno3
+      ifname: eno3
+      ip4: "10.100.100.3/16"
+      gw4: "10.100.1.1/16"
+    - conn_name: eno3
+      ifname: eno3
+      ip4: "10.100.100.4/16"
+      gw4: "10.100.1.1/16"
+    - conn_name: eno3
+      ifname: eno3
+      ip4: "10.100.100.5/16"
+      gw4: "10.100.1.1/16"
+    - conn_name: eno3
+      ifname: eno3
+      ip4: "10.100.100.6/16"
+      gw4: "10.100.1.1/16"
+    - conn_name: eno3
+      ifname: eno3
+      ip4: "10.100.100.7/16"
+      gw4: "10.100.1.1/16"
+    - conn_name: eno4
+      ifname: eno4
+      ip4: "10.1.1.20/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno4
+      ifname: eno4
+      ip4: "10.1.1.20/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno4
+      ifname: eno4
+      ip4: "10.1.1.21/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno4
+      ifname: eno4
+      ip4: "10.1.1.22/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno4
+      ifname: eno4
+      ip4: "10.1.1.23/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno4
+      ifname: eno4
+      ip4: "10.1.1.24/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno4
+      ifname: eno4
+      ip4: "10.1.1.25/24"
+      gw4: "10.1.1.1/24"
+    - conn_name: eno4
+      ifname: eno4
+      ip4: "10.1.1.26/24"
+      gw4: "10.1.1.1/24"
+  roles:
+    - Service-Account
+    - Containers-Docker
+    - Networking
+    - GitNetdata
+    - Hypervisor   
+  tasks:
+#    - name: Load Vars
+#      include_vars: 
+#        file: host_vars/Atlantis/Networks.yaml
+#    - name: Networking IPs
+#      nmcli:
+#        type: ethernet
+#        conn_name: '{{ item.conn_name }}'
+#        ip4: '{{ item.ip4 }}'
+#        gw4: '{{ item.gw4 }}'
+#        state: present
+#      with_items:
+#        - '{{ nmcli_ethernet }}'
+    - name: Utilis
+      dnf:
+        name:
+          - screen
+          - htop
+        state: latest

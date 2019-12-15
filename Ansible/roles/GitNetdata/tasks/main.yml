@@ -21,4 +21,4 @@
 
 - name: Screen Kickstart Netdata
   become: true
-  shell: "screen -d -m \"bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait --stable-channel; systemctl enable netdata.service; systemctl start netdata.service\" "
+  shell: 'screen -d -m "bash <(curl -Ss https://my-netdata.io/kickstart.sh) --dont-wait  && systemctl enable netdata.service && systemctl start netdata.service" '

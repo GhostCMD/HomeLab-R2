@@ -55,4 +55,4 @@
     - name: Add Publickey
       lineinfile:
         path: "/home/Ansible-Local/.ssh/authorized_keys"
-        line: "{{ ansible-Local-Pubkey }}"
+        line: "{{ ansibleLocalPubkey }}"

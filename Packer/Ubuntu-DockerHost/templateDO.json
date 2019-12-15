@@ -1,0 +1,30 @@
+{
+  "variables": {
+    "do_api_token": "{{env `TF_VAR_DIGITALOCEAN_TOKEN`}}"
+  },
+
+  "builders": [
+    {
+      "type": "digitalocean",
+      "api_token": "{{ user `do_api_token` }}",
+      "ssh_username": "root",
+      "size":"s-1vcpu-1gb",
+      "image": "ubuntu-19-04-x64",
+      "region": "lon1",
+      "snapshot_name": "DockerHost"
+    }],
+    "provisioners": [
+      {
+        "type": "ansible",
+        "playbook_file": "../../Ansible/Packer-DockerBuilder.yml"
+      },
+      {
+        "type": "shell",
+	"inline": [ 
+		"apt-get update",
+		"apt-get install docker.io docker-compose -y",
+		" cd $HOME ; wget https://gist.githubusercontent.com/GlitchWraith/b3adb3c546e377b16faeec78006628fb/raw/1c723914296380df83eaa3d9c949dc36b96afb40/docker-compose.yml"
+	]
+      }
+    ]
+}

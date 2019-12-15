@@ -12,7 +12,7 @@
     state: latest
 
 - name: Systemctl tuned service
-  cmd: systemctl start tuned.service
+  cmd: "systemctl start tuned.service"
 
 - name: tuned-adm activated
-  cmd: tuned-adm profile latency-performance virtual-host
+  cmd: "tuned-adm profile latency-performance virtual-host"
