@@ -9,6 +9,7 @@ Vagrant.configure("2") do |config|
       libvirt.pci :bus => '0x06', :slot => '0x0', :function => '0x0'
 
     end
+  end
   config.vm.provision "shell",
     inline: "sudo apt-update; sudo apt-add-repository multiverse; sudo apt-get update; sudo apt-get install nvidia-340 nvidia-cuda-toolkit -y sudo apt-get install build-essential libssl-dev
 -y "  
