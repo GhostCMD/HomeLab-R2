@@ -1,0 +1,102 @@
+---
+- name: Docker Cloud Builder
+  hosts: all:!Link0
+  vars:
+    packages:
+      - lib32gcc1
+      - wget
+      - gdb
+      - gcc-multilib
+      - expect
+      - tar
+      - wget
+      - xz-utils
+      - screen
+      - htop
+      - git
+      - python3-pip
+    pip:
+     - glances
+    BaseDir:
+      - /home/steam/
+    Collection:
+      - 1780079141
+  roles:
+    - Service-Account
+  tasks:
+    - name: include api variables
+      include_vars: ../crypt/steam.yaml
+    - name: packages to install
+      apt:
+        name: "{{ packages }}"
+        state: latest
+        update_cache: yes
+    - name: pip install
+      pip:
+        name: "{{ pip }}"
+    - name: Create Base Directory
+      file:
+        path: "/home/steam/"
+        state: directory
+        mode: '0755'
+    - name: Create steamcmd Directory
+      file:
+        path: "/home/steam/steamcmd"
+        state: directory
+        mode: '0755'
+    - name: Unarchive a file that is already on the remote machine
+      get_url:
+        url: http://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+        dest: "/home/steam/steamcmd/"
+    - name: Shell unzip Steamcmd
+      shell: "tar -xvzf steamcmd_linux.tar.gz && rm steamcmd_linux.tar.gz"
+      args:
+        chdir: "/home/steam/steamcmd"
+    - name: Shell Load Steamcmd
+      shell: "/home/steam/steamcmd/steamcmd.sh +quit"
+      args:
+        chdir: "/home/steam/steamcmd"
+    - name: Shell Pull Game Client
+      shell: "/home/steam/steamcmd/steamcmd.sh +login anonymous +force_install_dir ../Server1 +app_update 4020 validate +quit"
+      args:
+        chdir: "/home/steam/steamcmd"
+    - name: Copy Build Workaround
+      get_url:
+        url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-TTT/master/buildWorkAround.sh"
+        dest: "/home/steam/buildWorkAround.sh"
+        owner: root
+        group: root
+        mode: '0770'
+    - name: Shell Pull Game Client
+      shell: "/home/steam/buildWorkAround.sh {{ Collection }} {{ APIKey }}"
+      args:
+        chdir: "/home/steam/steamcmd"
+    - name: Copy Server config
+      get_url:
+        url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-TTT/master/server.cfg"
+        dest: "/home/steam/Server1/garrysmod/cfg/server.cfg"
+        owner: root
+        group: root
+        mode: '0770'
+    - name: Copy Server config
+      get_url:
+        url: "https://gist.githubusercontent.com/GlitchWraith/23d17df6ba4d3771ed0a279661d9aa13/raw/13b039b6c847b8d1357de94c545848043dd3c46a/config.txt"
+        dest: "/home/steam/Server1/garrysmod/data/mapvote/config.txt"
+        owner: root
+        group: root
+        mode: '0770'
+    - name: Add GameServer Local User 
+      user:
+        name: gameserver
+        comment: runs the server
+        password_lock: yes
+        system: yes
+        append: yes
+        create_home: false
+    - name: Change ownership steam dir
+      file:
+        path: "/home/steam/"
+        owner: gameserver
+        group: gameserver
+        state: directory
+        recurse: yes
