@@ -1,9 +1,8 @@
 ---
 - name: Docker Cloud Builder
-  hosts: all:!Link0
+  hosts: all:!Link0:!Metal
   roles:
     - Service-Account
-#    - GitNetdata
   tasks:
     - name: ensure multiverse
       shell: "apt-get update; apt-add-repository universe -y"

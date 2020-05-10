@@ -1,8 +1,0 @@
----
-- name: Cloud Host
-  hosts: all:!Link0
-  become: true
-  roles:
-    - Service-Account
-    - Containers-Docker
-    - Gitnetdata-Packer
