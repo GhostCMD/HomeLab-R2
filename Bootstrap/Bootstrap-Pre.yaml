@@ -32,15 +32,15 @@
       - pam-u2f
       - ffmpeg
       - flatpak
-      - steam
       - npm
+      - pavucontrol
+      - paprefs
+      - pulseaudio-module-zeroconf
     groups:
       - "@core"
       - "@multimedia"
       - "@sound-and-video"
     flatpacks:
-      - "com.discordapp.Discord"
-      - "com.mojang.Minecraft"
       - "org.zulip.Zulip"
       - "im.riot.Riot"
       - "org.signal.Signal"
@@ -137,4 +137,4 @@
     - name: Setting Bitwarden Cli
       become: true
       become_user: "{{ Username }}"
-      shell: " bw config server {{ bw_url }}"    
+      shell: " bw config server {{ bw_url }}"

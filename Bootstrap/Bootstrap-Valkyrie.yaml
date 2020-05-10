@@ -1,0 +1,167 @@
+---
+  - name: Bootstrap
+    become: true
+    hosts: localhost
+    connection: local
+    vars:
+      Username: GlitchWraith
+      bw_url: "https://warden.ghostlink.net"
+      packages:
+        - ansible
+        - htop
+        - git
+        - go
+        - code
+        - screen
+        - podman
+        - python3
+        - python3-pip
+        - python3-devel
+        - hwloc-gui
+        - "@development-tools"
+        - gcc-c++
+        - cmake
+        - cairo-devel
+        - automake
+        - pulseaudio-libs
+        - gtk3-devel
+        - unzip
+        - "@virtualization"
+        - zsh
+        - vim
+        - pam-u2f
+        - ffmpeg
+        - flatpak
+        - steam
+        - npm
+        - pavucontrol
+      groups:
+        - "@core"
+        - "@multimedia"
+        - "@sound-and-video"
+      flatpacks:
+        - "com.discordapp.Discord"
+        - "com.mojang.Minecraft"
+        - "org.zulip.Zulip"
+        - "im.riot.Riot"
+        - "org.signal.Signal"
+        - "com.github.alainm23.planner"
+    tasks: 
+      - yum_repository:
+          name: VSCode
+          baseurl: https://packages.microsoft.com/yumrepos/vscode
+          description: "Visual Studio Code"
+          gpgkey: https://packages.microsoft.com/keys/microsoft.asc
+          repo_gpgcheck: yes
+      - name:
+        file:
+          path: /usr/share/fonts/Global
+          state: directory
+          mode: "0755"        
+      - name: Make Fonts Folder from git
+        git: 
+          repo: https://github.com/GlitchWraith/Resources-Fonts.git
+          dest: /usr/share/fonts/Global
+      - shell: "fc-cache -v"
+      - name: Install Packages
+        dnf: 
+          name: "{{ packages }}"
+          state: latest
+  #    - name: Install Packages Groups
+  #      shell: " dnf group"
+      - name: FixUser
+        user:
+          name: "{{ Username }}"
+          groups: wheel,libvirt
+          append: yes
+          create_home: true
+          shell: zsh
+      - name: Make powerlevel10k from git
+        git: 
+          repo: https://github.com/romkatv/powerlevel10k.git
+          dest: "/home/{{ Username }}/powerlevel10k"
+      - git:
+          repo: "https://github.com/GlitchWraith/HomeLab-R2.git"
+          dest: /home/{{ Username }}/GitHub/HomeLab-R2
+          update: no
+      - git:
+          repo: "https://github.com/VundleVim/Vundle.vim.git"
+          dest: /home/{{ Username }}/.vim/bundle/Vundle.vim
+          update: yes
+      - file:
+          path: "/home/{{ Username }}/GitHub/HomeLab-R2"
+          state: directory
+          owner: "{{ Username }}"
+          group: "{{ Username }}"
+          recurse: yes
+      - file:
+          path: "/home/{{ Username }}/.vim"
+          state: directory
+          owner: "{{ Username }}"
+          group: "{{ Username }}"
+          recurse: yes
+      - name: Copy Postinstall Script
+        get_url:
+          url: https://raw.githubusercontent.com/GlitchWraith/HomeLab-R2/master/Ansible/Files/PostInstall.sh
+          dest: /home/{{ Username }}/PostInstall.sh
+      - name: get terraform
+        unarchive:
+          src: "https://releases.hashicorp.com/terraform/0.12.9/terraform_0.12.9_linux_amd64.zip"
+          dest: "/usr/bin/"
+          mode: "0751"
+          remote_src: yes
+          owner: root
+          group: wheel
+      - name: get packer
+        unarchive:
+          src: "https://releases.hashicorp.com/packer/1.4.3/packer_1.4.3_linux_amd64.zip"
+          dest: "/usr/bin/"
+          mode: "0751"
+          remote_src: yes
+          owner: root
+          group: wheel
+      - name: Add the flathub remote from the system installation
+        flatpak_remote:
+          name: flathub
+          state: present
+          flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+      - name: Install the flatpaks
+        flatpak:
+          name:  "{{ item }}"
+          state: present
+        loop: "{{  flatpacks  }}"
+      - name: Adding Bitwarden cli
+        npm:
+          name: "@bitwarden/cli"
+          global: yes
+          state: latest
+      - name: Setting Bitwarden Cli
+        become: true
+        become_user: "{{ Username }}"
+        shell: " bw config server {{ bw_url }}"
+      - name: Create dracut vfio.conf  
+        file:
+            path: "/etc/dracut.conf.d/vfio.conf"
+            state: touch
+            owner: root
+            group: root
+            mode: "0644"
+      - name: add config options to vfio.conf
+        lineinfile:
+            path: "/etc/dracut.conf.d/vfio.conf"
+            line: "force_drivers+=\"vfio vfio-pci vfio_iommu_type1 vfio_virqfd\""
+      - name: Create modprobe kvm.conf  
+        file:
+          path: "/etc/modprobe.d/kvm.conf"
+          state: touch
+          owner: root
+          group: root
+          mode: "0644"
+      - name: add config options to kvm.conf pci-ids
+        lineinfile:
+          path: "/etc/modprobe.d/kvm.conf"
+          line: "options vfio-pci ids=10de:1b82,10de:10f0,1106:3483,1b21:1242"
+      - name: add config options to kvm.conf nested
+        lineinfile:
+          path: "/etc/modprobe.d/kvm.conf"
+          line: "options kvm_intel nested=1"
