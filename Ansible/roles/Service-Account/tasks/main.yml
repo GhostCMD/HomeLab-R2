@@ -49,4 +49,5 @@
 - name: Add Publickey 
   lineinfile:
     path: "/home/ServiceLink/.ssh/authorized_keys"
-    line: "{{ SSH_SERVICELINK_SSH }}"
+    line: "{{ item }}"
+  loop: "{{ SSH_SERVICELINK_SSH }}"

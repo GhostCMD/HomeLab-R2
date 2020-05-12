@@ -1,23 +1,10 @@
-data "digitalocean_ssh_key" "Terraform" {
-  name       = "Terraform"
-  #public_key = "${file(var.sshPublic)}"
-}
-data "digitalocean_image" "Ubuntu-Gmod" {
+data "digitalocean_image" "Ubuntu-Gmod2" {
   name = "Ubuntu-Gmod2-Next"
 }
 
-data "digitalocean_ssh_key" "Miho" {
-  name = "Miho"
-}
-data "digitalocean_ssh_key" "Iphone" {
-  name = "Iphone"
-}
-data "digitalocean_ssh_key" "Ipad" {
-  name = "Ipad"
-}
-resource "digitalocean_droplet" "Gameserver-TTT"{
-    image = "${data.digitalocean_image.Ubuntu-Gmod.image}"
-    name = "Temporal-Gmod"
+resource "digitalocean_droplet" "Gameserver-TTT2"{
+    image = "${data.digitalocean_image.Ubuntu-Gmod2.image}"
+    name = "Temporal-Gmod2"
     region = "lon1"
     size = "c-4"
     private_networking = false
@@ -40,27 +27,23 @@ resource "digitalocean_droplet" "Gameserver-TTT"{
     provisioner "remote-exec" {
         inline = [ "date > /InitDateTime.txt" ]
     }
-    provisioner "remote-exec" {
-        inline = [ "sudo -u gameserver screen -S Gmod \"/home/steam/Server1/srcds_run -game garrysmod +maxplayers 12 +map  ttt_atlantis_v3  +gamemode terrortown -console +host_workshop_collection 2069519311\"" ]
-    }
-
     provisioner "local-exec" {
         command = "echo -e \"[remote] \\n ${self.ipv4_address} \" > hosts"
     }
     
 }
-resource "digitalocean_record" "Gameserver-TTT-DNS" {
+resource "digitalocean_record" "Gameserver-TTT2-DNS" {
   domain = "ghostlink.net"
   type   = "A"
   name   = "TTT2.Games"
   ttl    = "600"
-  value  = "${digitalocean_droplet.Gameserver-TTT.ipv4_address}"
+  value  = "${digitalocean_droplet.Gameserver-TTT2.ipv4_address}"
 }
 
-resource "digitalocean_record" "Gameserver-TTT-DNSv6" {
+resource "digitalocean_record" "Gameserver-TTT2-DNSv6" {
   domain = "ghostlink.net"
   type   = "AAAA"
   name   = "TTT2.Games"
   ttl    = "600"
-  value  = "${digitalocean_droplet.Gameserver-TTT.ipv6_address}"
+  value  = "${digitalocean_droplet.Gameserver-TTT2.ipv6_address}"
 }

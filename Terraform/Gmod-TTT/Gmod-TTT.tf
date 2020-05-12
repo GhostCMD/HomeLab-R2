@@ -40,10 +40,6 @@ resource "digitalocean_droplet" "Gameserver-TTT"{
     provisioner "remote-exec" {
         inline = [ "date > /InitDateTime.txt" ]
     }
-    provisioner "remote-exec" {
-        inline = [ "sudo -u gameserver screen -S Gmod \"/home/steam/Server1/srcds_run -game garrysmod +maxplayers 12 +map  ttt_atlantis_v3  +gamemode terrortown -console +host_workshop_collection 2035305813\"" ]
-    }
-
     provisioner "local-exec" {
         command = "echo -e \"[remote] \\n ${self.ipv4_address} \" > hosts"
     }

@@ -1,5 +1,5 @@
 ---
-- name: Docker Cloud Builder
+- name: Cloud Builder
   hosts: all:!Link0
   vars:
     packages:
@@ -11,16 +11,16 @@
       - tar
       - wget
       - xz-utils
-      - screen
       - htop
-      - git
       - python3-pip
     pip:
      - glances
     BaseDir:
       - /home/steam/
     Collection:
-      - 1780079141
+      - 2035305813
+    scards_params:
+      - /bin/sudo -u gameserver /home/steam/Server1/srcds_run -game garrysmod +maxplayers 12 +map  ttt_atlantis_v3  +gamemode terrortown -console +host_workshop_collection 2035305813
   roles:
     - Service-Account
   tasks:
@@ -62,13 +62,13 @@
         chdir: "/home/steam/steamcmd"
     - name: Copy Build Workaround
       get_url:
-        url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-TTT/master/buildWorkAround.sh"
+        url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-TTT2/master/buildWorkAround.sh"
         dest: "/home/steam/buildWorkAround.sh"
         owner: root
         group: root
         mode: '0770'
     - name: Shell Pull Game Client
-      shell: "/home/steam/buildWorkAround.sh {{ Collection }} {{ APIKey }}"
+      shell: "/home/steam/buildWorkAround.sh 2035305813 {{ APIKey }}"
       args:
         chdir: "/home/steam/steamcmd"
     - name: Copy Server config
@@ -79,8 +79,9 @@
         group: root
         mode: '0770'
     - name: Copy Server config
+      ignore_errors: yes
       get_url:
-        url: "https://gist.githubusercontent.com/GlitchWraith/23d17df6ba4d3771ed0a279661d9aa13/raw/13b039b6c847b8d1357de94c545848043dd3c46a/config.txt"
+        url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-TTT/master/config.txt"
         dest: "/home/steam/Server1/garrysmod/data/mapvote/config.txt"
         owner: root
         group: root
@@ -100,3 +101,23 @@
         group: gameserver
         state: directory
         recurse: yes
+    - name: Create steam Server unitfile
+      file:
+        path: "/etc/systemd/system/Steam.service"
+        owner: root
+        group: root
+        mode: '0664'
+        state: touch
+    - name: Mash Unit file
+      lineinfile:
+        path: "/etc/systemd/system/Steam.service"
+        line: "[Unit]\nDescription=Steam scards Server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nExecStart=/bin/sudo -u gameserver /home/steam/Server1/srcds_run -game garrysmod +maxplayers 12 +map  ttt_atlantis_v3  +gamemode terrortown -console +host_workshop_collection 2035305813"
+    - name: just force systemd to reread configs
+      systemd:
+        daemon_reload: yes
+    - name: enable service Steam.service and ensure it is not masked
+      ignore_errors: no
+      systemd:
+        name: Steam
+        enabled: yes
+        masked: no
