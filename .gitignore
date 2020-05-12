@@ -1,3 +1,5 @@
 DontTrack/
 Vagrant/*/.vagrant
 crypt/
+Terraform/*/.terraform
+Terraform/*/terraform.tfstat*

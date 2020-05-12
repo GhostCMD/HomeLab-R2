@@ -14,7 +14,11 @@
 - name: APT install Virtualisation Tools
   when: ansible_facts['os_family']|lower == 'debian'
   apt: 
-    name: ['qemu-kvm', 'libvirt-clients', 'libvirt-daemon-system', 'bridge-utils']
+    name: 
+      - qemu-kvm
+      - libvirt-clients
+      - libvirt-daemon-system
+      - bridge-utils
     state: latest
 
 - name: XML Backup folder
