@@ -1,0 +1,21 @@
+- name: apt install packages
+  when:  ansible_facts['os_family']|lower == 'debian'
+  apt:
+    name: cockpit
+    state: latest
+- name: dnf packages
+  when: ansible_facts['os_family'] == "RedHat"
+  dnf:
+    name: cockpit
+    state: latest
+- name: systemctl start & enable cockpit
+  systemd:
+    name: cockpit.socket
+    enabled: yes
+    state: started
+    masked: no
+- name: Ensure Firwalld rule added
+  firewalld:
+    service: cockpit
+    permanent: yes
+    state: enabled

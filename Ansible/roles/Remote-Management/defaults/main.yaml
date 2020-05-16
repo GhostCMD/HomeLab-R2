@@ -1,0 +1,4 @@
+apt-packages:
+  - cockpit 
+dnf-packages:
+  - cockpit

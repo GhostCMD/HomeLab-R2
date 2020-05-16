@@ -1,0 +1,189 @@
+---
+- name: Configure Storehouse1 ( no zpool Configuration)
+  hosts: Storehouse1
+  become: true
+  roles:
+    - zfs
+    - Containers
+    - firewalld
+    - Remote-Management
+    - Service-Account
+    - role: netplan
+      netplan_enabled: true
+      netplan_config_file: /etc/netplan/01-netcfg.yaml
+      netplan_renderer: networkd
+      netplan_configuration:
+        network:
+          version: 2
+          renderer: networkd
+          ethernets:
+              eno1:
+               dhcp4: false
+               dhcp6: true
+               addresses:
+                  - 10.172.1.30/24
+                  - 10.172.1.31/24
+                  - 10.172.1.32/24
+                  - 10.172.1.33/24
+                  - 10.172.1.34/24
+                  - 10.172.1.35/24
+               gateway4: 10.172.1.1
+               nameservers:
+                 addresses: 
+                   - 10.172.1.1
+                   - 10.172.16.1
+              eno2:
+                dhcp4: false
+                dhcp6: true
+                addresses:
+                    - 10.172.1.36/24
+                    - 10.172.1.37/24
+                    - 10.172.1.38/24
+                    - 10.172.1.39/24
+                gateway4: 10.172.1.1
+                nameservers:
+                  addresses: 
+                    - 10.172.1.1
+                    - 10.172.16.1
+              enp2s0:
+                dhcp4: false
+                dhcp6: true
+                addresses:
+                    - 10.172.1.40/24
+                    - 10.172.1.41/24
+                    - 10.172.1.42/24
+                    - 10.172.1.43/24
+                    - 10.172.1.44/24
+                    - 10.172.1.45/24
+                gateway4: 10.172.1.1
+                nameservers:
+                  addresses: 
+                    - 10.172.1.1
+                    - 10.172.16.1
+  tasks:
+    - name: Shell Task Run Timestamp
+      shell: "date >> /Ansible-ran.txt"
+      # NVME Single Drive zpool
+    - name: Ensure lancache-cache dataset exsists
+      zfs:
+        name: us-nvme-pool/lancache-cache
+        state: present
+        extra_zfs_properties:
+          atime: off
+          compression: lz4
+          exec: off
+          quota: 600G
+          setuid: off
+          logbias: throughput
+          sync: standard #disabled
+          redundant_metadata: most
+    - name: Ensure lancache-logs dataset exsists
+      zfs:
+        name: us-nvme-pool/lancache-logs
+        state: present
+        extra_zfs_properties:
+          atime: off
+          compression: lz4
+          exec: off
+          quota: 10G
+          setuid: off
+          logbias: latency
+          sync: standard 
+    - name: Ensure USDB dataset exsists
+      zfs:
+        name: us-nvme-pool/USDB
+        state: present
+        extra_zfs_properties:
+          atime: off
+          compression: lz4
+          exec: off
+          quota: 50G
+          setuid: off
+          logbias: latency
+          sync: standard     
+    - name: Ensure s3-nvme dataset exsists
+      zfs:
+        name: us-nvme-pool/s3-nvme
+        state: present
+        extra_zfs_properties:
+          atime: off
+          compression: off
+          exec: off
+          quota: 100G
+          setuid: off
+          logbias: latency
+          sync: standard 
+      # Mirror Mirror Pool
+    - name: Ensure USDB-bkup dataset exsists On Mirror
+      zfs:
+        name: Mirror/USDB-bkup
+        state: present
+        extra_zfs_properties:
+          atime: on
+          compression: lz4
+          exec: off
+          refquota: 50G
+          setuid: off
+          logbias: latency
+          sync: standard
+    - name: Ensure s3-nvme-bkup dataset exsists On Mirror
+      zfs:
+        name: Mirror/s3-nvme-bkup
+        state: present
+        extra_zfs_properties:
+          atime: on
+          compression: lz4
+          exec: off
+          refquota: 100G
+          setuid: off
+          logbias: latency
+          sync: standard
+    - name: Ensure s3 dataset exsists On Mirror
+      zfs:
+        name: Mirror/s3
+        state: present
+        extra_zfs_properties:
+          atime: on
+          compression: lz4
+          exec: off
+          refquota: 500G
+          setuid: off
+          logbias: latency
+          sync: standard
+    # lancache Containers
+    - name: lancache monolithic Container
+      docker_container:
+        name: monolithic-cache
+        image: lancachenet/monolithic:latest
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        privileged: no
+        keep_volumes: yes
+        published_ports:
+          - "10.172.1.31:80:80/tcp"
+        capabilities:
+          - cap_net_bind_service
+        memory: "4608m"
+        env:
+          CACHE_MEM_SIZE: "4096m"
+          CACHE_DISK_SIZE: "600000m"
+          UPSTREAM_DNS: "1.1.1.1 8.8.8.8"
+        volumes:
+          - "/us-nvme-pool/lancache-cache:/data/cache"
+          - "/us-nvme-pool/lancache-logs:/data/logs"
+    - name: lancache https proxy Container
+      docker_container:
+        name: sniproxy
+        image: lancachenet/sniproxy:latest
+        pull: yes
+        state: started
+        restart_policy: unless-stopped
+        privileged: no
+        published_ports:
+          - "10.172.1.31:443:443/tcp"
+        capabilities:
+          - cap_net_bind_service
+        memory: "512m"
+        env:
+          UPSTREAM_DNS: "1.1.1.1 8.8.8.8"

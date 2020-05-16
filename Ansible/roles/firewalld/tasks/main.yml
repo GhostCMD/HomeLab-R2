@@ -1,8 +1,21 @@
 - name: install firewalld
+  when: ansible_facts['os_family'] == "RedHat"
   dnf:
     name: firewalld
     state: latest
-- name: enable firewalld
-  command: "systemctl enable firewalld"
-- name: start firewalld
-  command: "systemctl start firewalld"
+- name: install firewalld apt
+  when: ansible_facts['os_family']|lower == 'debian'
+  apt:
+    name: firewalld
+    state: latest
+- name: remove ufw apt
+  when: ansible_facts['os_family']|lower == 'debian'
+  apt:
+    name: ufw
+    state: absent
+- name: systemctl start & enable firewalld
+  systemd:
+    name: firewalld
+    enabled: yes
+    state: started
+    masked: no

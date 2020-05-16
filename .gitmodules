@@ -1,0 +1,3 @@
+[submodule "Ansible/roles/netplan"]
+	path = Ansible/roles/netplan
+	url = https://github.com/GlitchWraith/ansible-netplan.git

@@ -1,0 +1,6 @@
+- name: apt install packages
+  when:  ansible_facts['os_family']|lower == 'debian'
+  apt:
+    name: 
+      - zfsutils-linux
+    state: latest
