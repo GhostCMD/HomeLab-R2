@@ -16,7 +16,8 @@
     "provisioners": [
       {
         "type": "ansible",
-        "extra_arguments": [ "-v"],
+        "extra_arguments": [ "-vv" ],
+        "host_alias" : "PackerGmod-TTT",
         "playbook_file": "../../Ansible/Packer-Gmod.yml"
       }
     ]
