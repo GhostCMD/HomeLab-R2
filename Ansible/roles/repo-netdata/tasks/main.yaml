@@ -1,0 +1,32 @@
+- name: apt install netdata
+  when: ansible_facts['os_family']|lower == 'debian'
+  apt:
+    name: netdata
+    state: latest
+- name: replace localhost ip with external ip
+  when: ansible_facts['os_family']|lower == 'debian'
+  lineinfile:
+    path: /etc/netdata/netdata.conf
+    regexp: '^bind socket to IP = 127\.0\.0\.1'
+    line: "bind socket to IP = {{ Primary_IP }}"
+- name: replace localhost ip with external ip
+  when: ansible_facts['os_family']|lower == 'debian'
+  lineinfile:
+    path: /etc/netdata/netdata.conf
+    regexp: '^bind socket to IP = 127\.0\.0\.1'
+    state: absent
+- name: systemctl start & enable firewalld
+  systemd:
+    name: netdata
+    enabled: yes
+    state: restarted
+    masked: no
+- firewalld:
+    port: 19999/tcp
+    zone: public
+    permanent: yes
+    state: enabled
+- name: systemctl start & enable firewalld
+  systemd:
+    name: firewalld
+    state: restarted

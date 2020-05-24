@@ -2,12 +2,18 @@
 - name: Configure Storehouse1 ( no zpool Configuration)
   hosts: Storehouse1
   become: true
+  vars:
+    Primary_IP: 10.172.1.30
+    s3_ip: 10.172.1.33
+    s3_cold_ip: 10.172.1.32
   roles:
     - zfs
     - Containers
     - firewalld
     - Remote-Management
     - Service-Account
+    - certbot
+    - repo-netdata
     - role: netplan
       netplan_enabled: true
       netplan_config_file: /etc/netplan/01-netcfg.yaml
@@ -63,6 +69,8 @@
   tasks:
     - name: Shell Task Run Timestamp
       shell: "date >> /Ansible-ran.txt"
+    - name: include variables
+      include_vars: ../crypt/minio_env.yaml
       # NVME Single Drive zpool
     - name: Ensure lancache-cache dataset exsists
       zfs:
@@ -187,3 +195,195 @@
         memory: "512m"
         env:
           UPSTREAM_DNS: "1.1.1.1 8.8.8.8"
+    #Install MinIo
+    - name: get minio binary
+      get_url:
+        url: https://dl.min.io/server/minio/release/linux-amd64/minio
+        dest: /usr/bin/minio
+        force: yes
+        group: "root"
+        owner: "root"
+        mode: "0751"
+    - name: Set cap_net_bind_service=+ep /usr/bin/minio
+      capabilities:
+        path: /usr/bin/minio
+        capability: cap_net_bind_service=+ep
+        state: present       
+    # MinIO User Accounts 
+    - name: MinIO Fast
+      user:
+        name: "s3-fast"
+        comment: MinIO on nvme
+        password_lock: yes
+        append: yes
+        create_home: true
+        system: yes
+        shell: "/bin/bash"
+    - name: MinIO SLow
+      user:
+        name: "s3-slow"
+        comment: MinIO on Mirror
+        password_lock: yes
+        append: yes
+        create_home: true
+        system: yes
+        shell: "/bin/bash"
+    - name: Folder Mounts MinIO Fast
+      file:
+        path: "/us-nvme-pool/s3-nvme"
+        state: directory
+        recurse: yes
+        owner: "s3-fast"
+        group: "s3-fast"
+    - name: Folder Mounts MinIO slow
+      file:
+        path: "/Mirror/s3"
+        state: directory
+        recurse: yes
+        owner: "s3-slow"
+        group: "s3-slow"
+    #SSL certs
+    - name: Folder .minio  MinIO Fast
+      file:
+        path: "/home/s3-fast/.minio"
+        state: directory
+        recurse: yes
+        owner: "s3-fast"
+        group: "s3-fast"
+    - name: Folder .minio  MinIO Fast
+      file:
+        path: "/home/s3-fast/.minio/certs"
+        state: directory
+        recurse: yes
+        owner: "s3-fast"
+        group: "s3-fast"
+    - name: Folder .minio  MinIO slow
+      file:
+        path: "/home/s3-slow/.minio"
+        state: directory
+        recurse: yes
+        owner: "s3-slow"
+        group: "s3-slow"
+    - name: Folder .minio  MinIO slow
+      file:
+        path: "/home/s3-slow/.minio/certs"
+        state: directory
+        recurse: yes
+        owner: "s3-slow"
+        group: "s3-slow"
+    # move from letsencript
+    - name: Copy a fullchain file 
+      copy:
+        src: /etc/letsencrypt/live/s3-cold.core.ghostlink.net/fullchain.pem
+        dest: /home/s3-slow/.minio/certs/public.crt
+        owner: "s3-slow"
+        group: "s3-slow"
+        remote_src: yes
+    - name: Copy a priv key file 
+      copy:
+        src: /etc/letsencrypt/live/s3-cold.core.ghostlink.net/privkey.pem
+        dest: /home/s3-slow/.minio/certs/private.key
+        owner: "s3-slow"
+        group: "s3-slow"
+        remote_src: yes
+    - name: Copy a fullchain file 
+      copy:
+        src: /etc/letsencrypt/live/s3.core.ghostlink.net/fullchain.pem
+        dest: /home/s3-fast/.minio/certs/public.crt
+        owner: "s3-fast"
+        group: "s3-fast"
+        remote_src: yes
+    - name: Copy a priv key file 
+      copy:
+        src: /etc/letsencrypt/live/s3.core.ghostlink.net/privkey.pem
+        dest: /home/s3-fast/.minio/certs/private.key
+        owner: "s3-fast"
+        group: "s3-fast"
+        remote_src: yes
+    # firewall dependencys
+    - firewalld:
+        port: "443/tcp"
+        permanent: yes
+        state: enabled
+    - firewalld:
+        service: https
+        permanent: yes
+        state: enabled
+    # env     
+    - name: Create minio-slow env removing old
+      file:
+        path: "/home/s3-slow/.env"
+        state: absent
+    - name: Create minio-slow env
+      file:
+        path: "/home/s3-slow/.env"
+        owner: s3-slow
+        group: s3-slow
+        mode: '0664'
+        state: touch
+    - name: Mash env file
+      lineinfile:
+        path: "/home/s3-slow/.env"
+        line: "MINIO_ACCESS_KEY={{ Server_Access_Key_mirror }}\nMINIO_SECRET_KEY={{ Server_Secret_Key_mirror }}\nMINIO_REGION_NAME=StoreHouse-mirror"
+    - name: Create  minio-fast env removing old
+      file:
+        path: "/home/s3-fast/.env"
+        state: absent
+    - name: Create minio-fast env
+      file:
+        path: "/home/s3-fast/.env"
+        owner: s3-fast
+        group: s3-fast
+        mode: '0664'
+        state: touch
+    - name: Mash env file
+      lineinfile:
+        path: "/home/s3-fast/.env"
+        line: "MINIO_ACCESS_KEY={{ Server_Access_Key_nvme  }}\nMINIO_SECRET_KEY={{ Server_Secret_Key_nvme }}\nMINIO_REGION_NAME=StoreHouse-nvme"
+      # systemd minio    
+    - name: Create minio-slow unitfile removing old
+      file:
+        path: "/etc/systemd/system/minio-slow.service"
+        state: absent
+    - name: Create minio-slow unitfile
+      file:
+        path: "/etc/systemd/system/minio-slow.service"
+        owner: root
+        group: root
+        mode: '0664'
+        state: touch
+    - name: Mash Unit file
+      lineinfile:
+        path: "/etc/systemd/system/minio-slow.service"
+        line: "[Unit]\nDescription=minio s3 server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nExecStart=/usr/bin/minio server --address \"{{ s3_cold_ip }}:443\" --certs-dir=/home/s3-slow/.minio/certs/ /Mirror/s3\nUser=s3-slow\nGroup=s3-slow\nEnvironmentFile=/home/s3-slow/.env"
+    - name: enable service minio-slow.service and ensure it is not masked
+      ignore_errors: no
+      systemd:
+        name: minio-slow
+        daemon_reload: yes
+        state: restarted
+        enabled: yes
+        masked: no
+    - name: Create minio-fast unitfile removing old 
+      file:
+        path: "/etc/systemd/system/minio-fast.service"
+        state: absent
+    - name: Create minio-fast unitfile
+      file:
+        path: "/etc/systemd/system/minio-fast.service"
+        owner: root
+        group: root
+        mode: '0664'
+        state: touch
+    - name: Mash Unit file
+      lineinfile:
+        path: "/etc/systemd/system/minio-fast.service"
+        line: "[Unit]\nDescription=minio s3 server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nExecStart=/usr/bin/minio server --address \"{{ s3_ip }}:443\" --certs-dir=/home/s3-fast/.minio/certs/ /us-nvme-pool/s3-nvme\nUser=s3-fast\nGroup=s3-fast\nEnvironmentFile=/home/s3-fast/.env"
+    - name: enable service minio-fast.service and ensure it is not masked
+      ignore_errors: no
+      systemd:
+        name: minio-fast
+        daemon_reload: yes
+        state: restarted
+        enabled: yes
+        masked: no

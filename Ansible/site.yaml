@@ -1,0 +1,4 @@
+---
+- name: Full Site Provison
+- import_playbook: Metal-Storehouse1.yaml
+- import_playbook: Metal-Pilink.yaml

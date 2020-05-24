@@ -1,0 +1,23 @@
+version: '2'
+services:
+  sniproxy:
+    image: docker.io/lancachenet/sniproxy:latest
+    environment:
+      - UPSTREAM_DNS="1.1.1.1 8.8.8.8" 
+    restart: unless-stopped
+    ports:
+      - 10.172.1.31:443:443/tcp
+      - 10.172.1.41:80:80/tcp
+  monolithic:
+    image: docker.io/lancachenet/monolithic:latest
+    environment:
+      - CACHE_MEM_SIZE=4096m
+      - CACHE_DISK_SIZE=600000m
+      - UPSTREAM_DNS="1.1.1.1 8.8.8.8"
+    restart: unless-stopped
+    ports:
+      - 10.172.1.31:80:80/tcp
+      - 10.172.1.41:80:80/tcp
+    volumes:
+      - /us-nvme-pool/lancache-cache/cache:/data/cache
+      - /us-nvme-pool/lancache-logs/logs:/data/logs
