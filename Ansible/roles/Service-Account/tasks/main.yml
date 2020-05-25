@@ -6,48 +6,49 @@
   group:
     name: libvirt
     state: present
-- name: Add ShellLink Local User ServiceLink
+- name: Add ShellLink Local User servicelink
   user:
-    name: ServiceLink
+    name: servicelink
     comment: Command and Control Account
     password_lock: yes
     groups: docker,libvirt
     append: yes
+    shell: "/bin/bash"
     create_home: true
 - name: Wheel Group
   when: ansible_facts['os_family'] == "RedHat"
   user:
-    name: ServiceLink
+    name: servicelink
     groups: wheel
     append: yes
 - name: sudo Group
   when: ansible_facts['distribution'] == "Ubuntu"
   user:
-    name: ServiceLink
+    name: servicelink
     groups: sudo
     append: yes
-- name: Make ServiceLink sudo Passwordless
+- name: Make servicelink sudo Passwordless
   lineinfile:
     path: /etc/sudoers
     state: present
-    line: "ServiceLink  ALL=(ALL)       NOPASSWD: ALL"
+    line: "servicelink  ALL=(ALL)       NOPASSWD: ALL"
     validate: /usr/sbin/visudo -cf %s
 - name: "Make .ssh Key"   
   file:
-    path: "/home/ServiceLink/.ssh/"
+    path: "/home/servicelink/.ssh/"
     state: directory
-    owner: ServiceLink 
-    group: ServiceLink 
+    owner: servicelink 
+    group: servicelink 
     mode: "0700"
 - name: Make Authorised Key      
   file:
-    path: "/home/ServiceLink/.ssh/authorized_keys"
+    path: "/home/servicelink/.ssh/authorized_keys"
     state: touch
-    owner: ServiceLink
-    group: ServiceLink
+    owner: servicelink
+    group: servicelink
     mode: "0600"
 - name: Add Publickey 
   lineinfile:
-    path: "/home/ServiceLink/.ssh/authorized_keys"
+    path: "/home/servicelink/.ssh/authorized_keys"
     line: "{{ item }}"
-  loop: "{{ SSH_SERVICELINK_SSH }}"
+  loop: "{{ SSH_servicelink_SSH }}"
