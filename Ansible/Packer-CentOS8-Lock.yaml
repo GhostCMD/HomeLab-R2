@@ -2,8 +2,6 @@
   - name: BootStrap
     hosts: all
     become: true
-    roles:
-      - Service-Account
     tasks:
       - name: remove shh host keys
         shell: "sleep 3 && rm  /etc/ssh/ssh_host_* & "

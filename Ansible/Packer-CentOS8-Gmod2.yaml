@@ -1,6 +1,7 @@
 ---
 - name: Packer Cloud Builder
   hosts: all:!Link0
+  become: true
   vars:
     packages:
       - gdb
@@ -11,13 +12,14 @@
       - python3-pip
       - glibc.i686
       - libstdc++.i686
+      - ncurses-libs.i686
     pip:
      - glances
-    BaseDir: "/home/steam/"
+    BaseDir: "/steam"
     Collection: "2069519311"
+    TTT: "TTT2"
+    Max_players: "12"
     MAP: "ttt_atlantis_v3"
-  roles:
-    - Service-Account
   tasks:
     - name: include api variables
       include_vars: ../crypt/steam.yaml
@@ -25,50 +27,47 @@
       dnf:
         name: "{{ packages }}"
         state: latest
-    - name: pip install
-      pip:
-        name: "{{ pip }}"
     - name: Create Base Directory
       file:
-        path: "/home/steam/"
+        path: "{{BaseDir}}"
         state: directory
         mode: '0755'
     - name: Create steamcmd Directory
       file:
-        path: "/home/steam/steamcmd"
+        path: "{{BaseDir}}/steamcmd"
         state: directory
         mode: '0755'
     - name: Unarchive a file that is already on the remote machine
       get_url:
         url: http://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
-        dest: "/home/steam/steamcmd/"
+        dest: "{{BaseDir}}/steamcmd/"
     - name: Shell unzip Steamcmd
       shell: "tar -xvzf steamcmd_linux.tar.gz && rm steamcmd_linux.tar.gz"
       args:
-        chdir: "/home/steam/steamcmd"
+        chdir: "{{BaseDir}}/steamcmd"
     - name: Shell Load Steamcmd
-      shell: "/home/steam/steamcmd/steamcmd.sh +quit"
+      shell: "{{BaseDir}}/steamcmd/steamcmd.sh +quit"
       args:
-        chdir: "/home/steam/steamcmd"
+        chdir: "{{BaseDir}}/steamcmd"
     - name: Shell Pull Game Client
-      shell: "/home/steam/steamcmd/steamcmd.sh +login anonymous +force_install_dir ../Server1 +app_update 4020 validate +quit"
+      shell: "{{BaseDir}}/steamcmd/steamcmd.sh +login anonymous +force_install_dir ../Server1 +app_update 4020 validate +quit"
       args:
-        chdir: "/home/steam/steamcmd"
+        chdir: "{{BaseDir}}/steamcmd"
     - name: Copy Build Workaround
       get_url:
-        url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-TTT2/master/buildWorkAround.sh"
-        dest: "/home/steam/buildWorkAround.sh"
+        url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-{{ TTT }}/master/buildWorkAround.sh"
+        dest: "{{BaseDir}}/buildWorkAround.sh"
         owner: root
         group: root
         mode: '0770'
     - name: Shell Pull Game Client
-      shell: "/home/steam/buildWorkAround.sh {{ Collection }}"
+      shell: "{{BaseDir}}/buildWorkAround.sh {{BaseDir}}/Server1/srcds_run {{ Collection }}"
       args:
-        chdir: "/home/steam/steamcmd"
+        chdir: "{{BaseDir}}/steamcmd"
     - name: Copy Server config
       get_url:
-        url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-TTT2/master/server.cfg"
-        dest: "/home/steam/Server1/garrysmod/cfg/server.cfg"
+        url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-{{ TTT }}/master/server.cfg"
+        dest: "{{BaseDir}}/Server1/garrysmod/cfg/server.cfg"
         owner: root
         group: root
         mode: '0770'
@@ -82,7 +81,7 @@
         create_home: false
     - name: Change ownership steam dir
       file:
-        path: "/home/steam/"
+        path: "{{BaseDir}}"
         owner: gameserver
         group: gameserver
         state: directory
@@ -97,7 +96,7 @@
     - name: Mash Unit file
       lineinfile:
         path: "/etc/systemd/system/Steam.service"
-        line: "[Unit]\nDescription=Steam scards Server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nUser=gameserver\nGroup=gameserver\nExecStart=/home/steam/Server1/srcds_run -game garrysmod +maxplayers 12 +map  {{ MAP }}  +gamemode terrortown -console +host_workshop_collection {{ Collection }}\n[Install]\nWantedBy=multi-user.target"
+        line: "[Unit]\nDescription=Steam scards Server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nUser=gameserver\nGroup=gameserver\nExecStart={{BaseDir}}/Server1/srcds_run -game garrysmod +maxplayers {{ Max_players }} +map  {{ MAP }}  +gamemode terrortown -console +host_workshop_collection {{ Collection }}\n[Install]\nWantedBy=multi-user.target"
     - name: just force systemd to reread configs
       systemd:
         daemon_reload: yes

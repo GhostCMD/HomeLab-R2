@@ -1,0 +1,70 @@
+---
+  - name: BootStrap
+    hosts: all
+    become: true
+    vars:
+      packages:
+        - puppetserver
+        - ruby
+      paths:
+        - "/etc/puppetlabs/puppet/hiera.yaml"
+        - "/etc/puppetlabs/r10k/r10k.yaml"
+        - "/etc/puppetlabs/puppet/puppet.conf.git"
+    tasks:
+      #- name: set hostname
+      #  hostname:
+      #    name: puppet.core.ghostlink.net
+      #- name: reload
+      #  systemd:
+      #    state: restarted
+      #    daemon_reload: yes
+      #    name:  systemd-hostnamed
+      - name: install puppet server
+        dnf:
+          name: "{{ packages }}"
+          state: latest
+      - name: Install r10k gem
+        gem:
+          name: r10k
+          state: latest
+          user_install: no
+      - name: Create r10k config dir
+        file:
+          path: "/etc/puppetlabs/r10k"
+          state: directory
+          mode: '0755'
+          owner: puppet
+          group: puppet
+      - name: Create r10k config dir
+        file:
+          path: "{{ item }}"
+          state: touch
+          owner: puppet
+          group: puppet
+        loop: "{{ paths }}"
+      - name: Get r10k config from git
+        get_url:
+          url: "https://raw.githubusercontent.com/GlitchWraith/puppet-ctrl/master/r10k.yaml"
+          dest: "/etc/puppetlabs/r10k/r10k.yaml"
+          owner: puppet
+          group: puppet
+          mode: '0644'
+      - name: Get hiera config from git
+        get_url:
+          url: "https://raw.githubusercontent.com/GlitchWraith/puppet-ctrl/master/hiera.yaml"
+          dest: "/etc/puppetlabs/puppet/hiera.yaml"
+          owner: puppet
+          group: puppet
+          mode: '0644'
+      - name: Get puppet config sample from git
+        get_url:
+          url: "https://raw.githubusercontent.com/GlitchWraith/puppet-ctrl/master/puppet.conf.git"
+          dest: "/etc/puppetlabs/puppet/puppet.conf.git"
+          owner: puppet
+          group: puppet
+          mode: '0644'
+      - name: reload
+        systemd:
+          enabled: yes
+          daemon_reload: yes
+          name: puppetserver
