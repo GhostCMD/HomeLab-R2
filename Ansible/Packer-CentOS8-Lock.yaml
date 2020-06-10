@@ -1,0 +1,16 @@
+---
+  - name: BootStrap
+    hosts: all
+    become: true
+    roles:
+      - Service-Account
+    tasks:
+      - name: remove shh host keys
+        shell: "sleep 3 && rm  /etc/ssh/ssh_host_* & "
+      - name: Lock Packer Local User 
+        user:
+          name: packer        
+          password_lock: yes
+          groups: packer
+          append: no
+          shell: /usr/sbin/nologin

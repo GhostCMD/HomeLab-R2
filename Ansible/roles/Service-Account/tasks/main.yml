@@ -6,6 +6,11 @@
   group:
     name: libvirt
     state: present
+- name: CentOS 8 Bindings 
+  when: ansible_facts['distribution'] == "CentOS" and ansible_facts['distribution_major_version'] == "8"
+  dnf:
+    name: python3-libselinux
+    state: latest
 - name: Add ShellLink Local User servicelink
   user:
     name: servicelink

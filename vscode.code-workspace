@@ -2,7 +2,18 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../../../../mnt/mdadm-2TB/Dump/home"
+		},
+		{
+			"path": "../puppet"
+		},
+		{
+			"path": "../puppet-ctrl"
 		}
 	],
-	"settings": {}
+	"settings": {
+		"puppet.editorService.puppet.version": "6.15.0"
+	}
 }

@@ -1,0 +1,42 @@
+---
+  - name: BootStrap
+    hosts: all
+    become: true
+    vars:
+      packages:
+        - vim
+        - python3-pip
+        - tuned
+        - htop
+        - puppet
+    roles:
+      - Service-Account
+    tasks:
+      - name: SeLinuxPython [dnf]
+        when: ansible_facts['distribution'] == "CentOS"
+        dnf:
+          name: python3-libselinux
+          state: latest
+      - name: Update Packages
+        when: ansible_facts['os_family'] == "RedHat" 
+        dnf:
+          name: "*"
+          state: latest
+      - name: packages to install
+        when: ansible_facts['os_family'] == "RedHat" 
+        dnf:
+          name: "{{ packages }}"
+          state: latest
+      - name: Systemctl tuned service
+        shell: "systemctl start tuned.service"
+      - name: tuned-adm activated
+        shell: "tuned-adm profile latency-performance virtual-host"
+      - name: remove shh host keys
+        shell: "sleep 3 && rm  /etc/ssh/ssh_host_* & "
+      - name: Lock Packer Local User 
+        user:
+          name: packer        
+          password_lock: yes
+          groups: packer
+          append: no
+          shell: /usr/sbin/nologin

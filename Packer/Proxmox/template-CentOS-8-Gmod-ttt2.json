@@ -1,0 +1,75 @@
+{
+  "variables": {
+    "username": "packer@pve",
+    "password": "{{ env `PACKER_PVE`}}",
+    "sudo": "TempPassword.ForPacker1",
+    "ssh": "packer",
+    "Key": "{{ env `TF_VAR_sshPrivate` }}"
+  },
+  "builders": [
+    {
+      "type": "proxmox",
+      "proxmox_url": "https://10.172.1.50:8006/api2/json",
+      "insecure_skip_tls_verify": true,
+      "username": "{{user `username`}}",
+      "password": "{{user `password`}}",
+
+      "node": "district-alpha",
+      "network_adapters": [
+        {
+          "bridge": "vmbr0",
+          "model": "virtio"
+        }
+      ],
+      "cores": "1",
+      "memory": 2048,
+      "disks": [
+        {
+          "type": "virtio",
+          "disk_size": "25G",
+          "storage_pool": "pool1",
+          "storage_pool_type": "zfspool"
+        }
+      ],
+
+      "iso_file": "local:iso/CentOS-8.1.1911-x86_64-dvd1.iso",
+      "http_directory":"ks",
+      "boot_wait": "10s",
+      "boot_command": [
+        "<up><tab> ip=dhcp inst.cmdline inst.ks=http://{{ .HTTPIP }}:{{.HTTPPort}}/centos8.ks<enter>"
+      ],
+
+      "ssh_username": "{{user `ssh`}}",
+      "ssh_timeout": "30m",
+      "ssh_password": "{{user `sudo` }}",
+
+      "unmount_iso": true,
+      "template_name": "CentOS-8",
+      "vm_id": "1001",
+      "cloud_init": true,
+      "template_description": "CentOS 8, generated on {{ isotime \"2006-01-02T15:04:05Z\" }}"
+    }
+  ],
+  "provisioners": [
+      {
+        "type": "ansible",
+        "playbook_file": "../../Ansible/Packer-CentOS8-Inital.yaml",
+        "extra_arguments": [ "-v", "--extra-vars", "vm_default_user={{user `ssh`}}" ],
+        "ansible_env_vars": [  "ANSIBLE_FORCE_COLOR=True" , "ANSIBLE_BECOME_PASS={{ user `sudo`}}"]
+      },
+      {
+        "type": "ansible",
+        "playbook_file": "../../Ansible/Packer-CentOS8-Gmod2.yaml",
+        "extra_arguments": [ "-v", "--extra-vars", "vm_default_user={{user `ssh`}}" ],
+        "ansible_env_vars": [  "ANSIBLE_FORCE_COLOR=True" , "ANSIBLE_BECOME_PASS={{ user `sudo`}}"]
+      },
+      {
+        "type": "ansible",
+        "playbook_file": "../../Ansible/Packer-CentOS8-Lock.yaml",
+        "extra_arguments": [ "-v", "--extra-vars", "vm_default_user={{user `ssh`}}" ],
+        "ansible_env_vars": [  "ANSIBLE_FORCE_COLOR=True" , "ANSIBLE_BECOME_PASS={{ user `sudo`}}"]
+      }
+    ]
+}
+
+
