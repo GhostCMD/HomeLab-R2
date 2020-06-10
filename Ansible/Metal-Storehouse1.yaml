@@ -4,7 +4,7 @@
   become: true
   vars:
     Primary_IP: 10.172.1.30
-    s3_ip: 10.172.1.33
+    s3_ip: 10.172.1.43
     s3_cold_ip: 10.172.1.32
   roles:
     - zfs
@@ -158,6 +158,18 @@
           setuid: off
           logbias: latency
           sync: standard
+    - name: Ensure Proxmox Backup exsists On Mirror
+      zfs:
+        name: Mirror/Proxmox
+        state: present
+        extra_zfs_properties:
+          atime: on
+          compression: lz4
+          exec: off
+          refquota: 700G
+          setuid: off
+          logbias: throughput
+          sync: standard
     # lancache Containers
     - name: lancache monolithic Container
       docker_container:
@@ -169,7 +181,7 @@
         privileged: no
         keep_volumes: yes
         published_ports:
-          - "10.172.1.31:80:80/tcp"
+          - "10.172.1.41:80:80/tcp"
         capabilities:
           - cap_net_bind_service
         memory: "4608m"
@@ -189,7 +201,7 @@
         restart_policy: unless-stopped
         privileged: no
         published_ports:
-          - "10.172.1.31:443:443/tcp"
+          - "10.172.1.41:443:443/tcp"
         capabilities:
           - cap_net_bind_service
         memory: "512m"
@@ -355,7 +367,7 @@
     - name: Mash Unit file
       lineinfile:
         path: "/etc/systemd/system/minio-slow.service"
-        line: "[Unit]\nDescription=minio s3 server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nExecStart=/usr/bin/minio server --address \"{{ s3_cold_ip }}:443\" --certs-dir=/home/s3-slow/.minio/certs/ /Mirror/s3\nUser=s3-slow\nGroup=s3-slow\nEnvironmentFile=/home/s3-slow/.env"
+        line: "[Unit]\nDescription=minio s3 server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nExecStart=/usr/bin/minio server --address \"{{ s3_cold_ip }}:443\" --certs-dir=/home/s3-slow/.minio/certs/ /Mirror/s3\nUser=s3-slow\nGroup=s3-slow\nEnvironmentFile=/home/s3-slow/.env\n[Install]\nWantedBy=multi-user.target"
     - name: enable service minio-slow.service and ensure it is not masked
       ignore_errors: no
       systemd:
@@ -378,7 +390,7 @@
     - name: Mash Unit file
       lineinfile:
         path: "/etc/systemd/system/minio-fast.service"
-        line: "[Unit]\nDescription=minio s3 server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nExecStart=/usr/bin/minio server --address \"{{ s3_ip }}:443\" --certs-dir=/home/s3-fast/.minio/certs/ /us-nvme-pool/s3-nvme\nUser=s3-fast\nGroup=s3-fast\nEnvironmentFile=/home/s3-fast/.env"
+        line: "[Unit]\nDescription=minio s3 server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nExecStart=/usr/bin/minio server --address \"{{ s3_ip }}:443\" --certs-dir=/home/s3-fast/.minio/certs/ /us-nvme-pool/s3-nvme\nUser=s3-fast\nGroup=s3-fast\nEnvironmentFile=/home/s3-fast/.env\n[Install]\nWantedBy=multi-user.target"
     - name: enable service minio-fast.service and ensure it is not masked
       ignore_errors: no
       systemd:

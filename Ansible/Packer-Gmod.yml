@@ -1,5 +1,5 @@
 ---
-- name: Cloud Builder
+- name: Packer Cloud Builder
   hosts: PackerGmod-TTT
   vars:
     packages:
@@ -108,7 +108,7 @@
     - name: Mash Unit file
       lineinfile:
         path: "/etc/systemd/system/Steam.service"
-        line: "[Unit]\nDescription=Steam scards Server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nExecStart={{ scards_params }}{{ Collection }}"
+        line: "[Unit]\nDescription=Steam scards Server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nExecStart={{ scards_params }}{{ Collection }}\n[Install]\nWantedBy=multi-user.target"
     - name: just force systemd to reread configs
       systemd:
         daemon_reload: yes

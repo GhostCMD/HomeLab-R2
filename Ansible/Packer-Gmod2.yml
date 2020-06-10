@@ -1,5 +1,5 @@
 ---
-- name: Docker Cloud Builder
+- name: Packer Cloud Builder
   hosts: all:!Link0
   vars:
     packages:
@@ -102,7 +102,7 @@
     - name: Mash Unit file
       lineinfile:
         path: "/etc/systemd/system/Steam.service"
-        line: "[Unit]\nDescription=Steam scards Server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nExecStart=/bin/sudo -u gameserver /home/steam/Server1/srcds_run -game garrysmod +maxplayers 12 +map  {{ MAP }}  +gamemode terrortown -console +host_workshop_collection {{ Collection }}"
+        line: "[Unit]\nDescription=Steam scards Server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nUser=gameserver\nGroup=gameserver\nExecStart=/home/steam/Server1/srcds_run -game garrysmod +maxplayers 12 +map  {{ MAP }}  +gamemode terrortown -console +host_workshop_collection {{ Collection }}\n[Install]\nWantedBy=multi-user.target"
     - name: just force systemd to reread configs
       systemd:
         daemon_reload: yes
@@ -110,5 +110,6 @@
       ignore_errors: no
       systemd:
         name: Steam
+        state: started
         enabled: yes
         masked: no

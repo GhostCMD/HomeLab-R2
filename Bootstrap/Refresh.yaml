@@ -1,0 +1,78 @@
+---
+- name: Bootstrap
+  become: true
+  hosts: localhost
+  connection: local
+  vars:
+    Username: GlitchWraith
+    bw_url: "https://warden.ghostlink.net"
+    packages:
+      - ansible
+      - htop
+      - git
+      - go
+      - code
+      - screen
+      - podman
+      - python3
+      - python3-pip
+      - python3-devel
+      - hwloc-gui
+      - "@development-tools"
+      - gcc-c++
+      - cmake
+      - cairo-devel
+      - automake
+      - pulseaudio-libs
+      - gtk3-devel
+      - unzip
+      - "@virtualization"
+      - zsh
+      - vim
+      - pam-u2f
+      - ffmpeg
+      - flatpak
+      - npm
+      - pavucontrol
+      - paprefs
+      - pulseaudio-module-zeroconf
+    groups:
+      - "@core"
+      - "@multimedia"
+      - "@sound-and-video"
+    flatpacks:
+      - "org.zulip.Zulip"
+      - "im.riot.Riot"
+      - "org.signal.Signal"
+      - "com.github.alainm23.planner"
+  tasks:     
+    - unarchive:
+        src: "https://releases.hashicorp.com/terraform/0.12.26/terraform_0.12.26_linux_amd64.zip"
+        dest: "/usr/bin/"
+        mode: "0751"
+        remote_src: yes
+        owner: root
+        group: wheel
+    - name: get packer
+      unarchive:
+        src: "https://releases.hashicorp.com/packer/1.5.6/packer_1.5.6_linux_amd64.zip"
+        dest: "/usr/bin/"
+        mode: "0751"
+        remote_src: yes
+        owner: root
+        group: wheel
+    - name: Add the flathub remote from the system installation
+      flatpak_remote:
+        name: flathub
+        state: present
+        flatpakrepo_url: https://flathub.org/repo/flathub.flatpakrepo
+    - name: Install the flatpaks
+      flatpak:
+        name:  "{{ item }}"
+        state: present
+      loop: "{{  flatpacks  }}"
+    - name: Adding Bitwarden cli
+      npm:
+        name: "@bitwarden/cli"
+        global: yes
+        state: latest

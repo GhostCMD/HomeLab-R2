@@ -2,4 +2,6 @@
 storehouse1
 
 [Storehouse1]
-storehouse1
+10.172.1.40
+[openstack-aio]
+district-delta.core.ghostlink.net

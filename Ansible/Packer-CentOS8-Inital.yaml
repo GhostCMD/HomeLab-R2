@@ -31,12 +31,3 @@
         shell: "systemctl start tuned.service"
       - name: tuned-adm activated
         shell: "tuned-adm profile latency-performance virtual-host"
-      - name: remove shh host keys
-        shell: "sleep 3 && rm  /etc/ssh/ssh_host_* & "
-      - name: Lock Packer Local User 
-        user:
-          name: packer        
-          password_lock: yes
-          groups: packer
-          append: no
-          shell: /usr/sbin/nologin

@@ -1,0 +1,44 @@
+---
+- name: Configure Openstack Ansible on host
+  hosts: openstack-aio
+  become: true
+  vars:
+    Primary_IP: 10.172.1.50
+    packages:
+      - vim
+      - tmux
+      - git
+      - epel-release
+      - screen
+  roles:
+    - Service-Account
+#    - repo-netdata
+  tasks:
+    - name: Shell Task Run Timestamp
+      shell: "date >> /Ansible-ran.txt"
+    - name: Disable SELinux
+      selinux:
+        state: disabled
+    - name: Update Packages
+      when: ansible_facts['os_family'] == "RedHat" 
+      yum:
+        name: "*"
+        state: latest
+    - name: packages to install
+      when: ansible_facts['os_family'] == "RedHat" 
+      yum:
+        name: "{{ packages }}"
+        state: latest
+    - name: systemctl stop & mask firewalld
+      systemd:
+        name: firewalld
+        enabled: no
+        state: stopped
+        masked: yes  
+    - name: Git pull openstack-ansible
+      git:
+        repo: "https://opendev.org/openstack/openstack-ansible.git"
+        dest:  /opt/openstack-ansible
+        version: "stable/ussuri"
+
+        
