@@ -8,16 +8,17 @@
       "type": "digitalocean",
       "api_token": "{{ user `do_api_token` }}",
       "ssh_username": "root",
-      "size":"c-4",
-      "image": "ubuntu-19-10-x64",
+      "size":"c-2",
+      "image": "centos-8-x64",
       "region": "lon1",
-      "snapshot_name": "Ubuntu-Gmod2-Next"
+      "snapshot_name": "Gmod"
     }],
     "provisioners": [
       {
         "type": "ansible",
-        "extra_arguments": [ "-v"],
-        "playbook_file": "../../Ansible/Packer-Gmod2.yml"
+        "extra_arguments": [ "-vv" ],
+        "host_alias" : "PackerGmod-TTT",
+        "playbook_file": "../../Ansible/Packer-Gmod.yml"
       }
     ]
 }

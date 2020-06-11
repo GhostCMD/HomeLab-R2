@@ -30,7 +30,7 @@
       - name: Systemctl tuned service
         shell: "systemctl start tuned.service"
       - name: tuned-adm activated
-        shell: "tuned-adm profile latency-performance virtual-host"
+        shell: "tuned-adm profile latency-performance virtual-guest"
       - name: enable powertools
         ini_file:
           path: /etc/yum.repos.d/CentOS-PowerTools.repo

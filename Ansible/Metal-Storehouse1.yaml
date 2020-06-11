@@ -14,6 +14,7 @@
     - Service-Account
     - certbot
     - repo-netdata
+    - samba
     - role: netplan
       netplan_enabled: true
       netplan_config_file: /etc/netplan/01-netcfg.yaml
@@ -170,6 +171,95 @@
           setuid: off
           logbias: throughput
           sync: standard
+          dedup: verify
+    - name: Ensure Proxmox iscsi removed on Mirror
+      zfs:
+        name: Mirror/Proxmox_iscsi
+        state: absent
+    - name: Ensure Proxmox smb exsists On Mirror
+      zfs:
+        name: Mirror/Proxmox_smb
+        state: present
+        extra_zfs_properties:
+          atime: off
+          sharesmb: on
+          compression: lz4
+          exec: off
+          refquota: 450G
+          setuid: off
+          logbias: throughput
+          sync: standard
+          dedup: off
+    - name: Create Owenership
+      file:
+        path: "/Mirror/Proxmox_smb"
+        state: directory
+        owner: proxmox
+        group: proxmox
+        mode: "0700"
+    - name: Ensure Proxmox smb exsists On Mirror
+      zfs:
+        name: Mirror/Proxmox_smb_iso
+        state: present
+        extra_zfs_properties:
+          atime: off
+          sharesmb: on
+          compression: lz4
+          exec: off
+          refquota: 50G
+          setuid: off
+          logbias: throughput
+          sync: standard
+          dedup: verify
+    - name: Create Owenership
+      file:
+        path: "/Mirror/Proxmox_smb_iso"
+        state: directory
+        owner: proxmox
+        group: proxmox
+        mode: "0750"
+    - name: Ensure Proxmox smb exsists On Mirror
+      zfs:
+        name: Mirror/Proxmox_smb_bkup
+        state: present
+        extra_zfs_properties:
+          atime: off
+          sharesmb: on
+          compression: lz4
+          exec: off
+          refquota: 1T
+          setuid: off
+          logbias: throughput
+          sync: standard
+          dedup: verify
+    - name: Create Owenership
+      file:
+        path: "/Mirror/Proxmox_smb_bkup"
+        state: directory
+        owner: proxmox
+        group: proxmox
+        mode: "0750"
+    - name: Ensure Steam smb share
+      zfs:
+        name: Mirror/Steam_smb
+        state: present
+        extra_zfs_properties:
+          atime: off
+          sharesmb: on
+          compression: lz4
+          exec: off
+          refquota: 1T
+          setuid: off
+          logbias: latency
+          sync: standard
+          dedup: verify
+    - name: Create Owenership
+      file:
+        path: "/Mirror/Steam_smb"
+        state: directory
+        owner: steam
+        group: steam
+        mode: "0750"
     # lancache Containers
     - name: lancache monolithic Container
       docker_container:

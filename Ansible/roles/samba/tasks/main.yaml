@@ -1,0 +1,12 @@
+- apt:
+    name: samba
+    state: latest
+- firewalld:
+    service: samba
+    zone: public
+    permanent: yes
+    state: enabled
+- name: systemctl start & enable firewalld
+  systemd:
+    name: firewalld
+    state: restarted

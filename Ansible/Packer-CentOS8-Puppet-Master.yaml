@@ -6,19 +6,12 @@
       packages:
         - puppetserver
         - ruby
+        - git
       paths:
         - "/etc/puppetlabs/puppet/hiera.yaml"
         - "/etc/puppetlabs/r10k/r10k.yaml"
         - "/etc/puppetlabs/puppet/puppet.conf.git"
     tasks:
-      #- name: set hostname
-      #  hostname:
-      #    name: puppet.core.ghostlink.net
-      #- name: reload
-      #  systemd:
-      #    state: restarted
-      #    daemon_reload: yes
-      #    name:  systemd-hostnamed
       - name: install puppet server
         dnf:
           name: "{{ packages }}"
@@ -65,6 +58,6 @@
           mode: '0644'
       - name: reload
         systemd:
-          enabled: yes
+          enabled: no
           daemon_reload: yes
           name: puppetserver

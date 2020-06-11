@@ -1,115 +1,113 @@
 ---
-- name: Packer Cloud Builder
-  hosts: all:!Link0
-  vars:
-    packages:
-      - lib32gcc1
-      - wget
-      - gdb
-      - gcc-multilib
-      - expect
-      - tar
-      - wget
-      - xz-utils
-      - screen
-      - htop
-      - git
-      - python3-pip
-    pip:
-     - glances
-    BaseDir: "/home/steam/"
-    Collection: "2069519311"
-    MAP: "ttt_atlantis_v3"
-  roles:
-    - Service-Account
-  tasks:
-    - name: include api variables
-      include_vars: ../crypt/steam.yaml
-    - name: packages to install
-      apt:
-        name: "{{ packages }}"
-        state: latest
-        update_cache: yes
-    - name: pip install
+  - name: Packer Cloud Builder
+    hosts: PackerGmod-TTT2
+    become: true
+    vars:
+      packages:
+        - gdb
+        - expect
+        - tar
+        - wget
+        - htop
+        - python3-pip
+        - glibc.i686
+        - libstdc++.i686
+        - ncurses-libs.i686
       pip:
-        name: "{{ pip }}"
-    - name: Create Base Directory
-      file:
-        path: "/home/steam/"
-        state: directory
-        mode: '0755'
-    - name: Create steamcmd Directory
-      file:
-        path: "/home/steam/steamcmd"
-        state: directory
-        mode: '0755'
-    - name: Unarchive a file that is already on the remote machine
-      get_url:
-        url: http://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
-        dest: "/home/steam/steamcmd/"
-    - name: Shell unzip Steamcmd
-      shell: "tar -xvzf steamcmd_linux.tar.gz && rm steamcmd_linux.tar.gz"
-      args:
-        chdir: "/home/steam/steamcmd"
-    - name: Shell Load Steamcmd
-      shell: "/home/steam/steamcmd/steamcmd.sh +quit"
-      args:
-        chdir: "/home/steam/steamcmd"
-    - name: Shell Pull Game Client
-      shell: "/home/steam/steamcmd/steamcmd.sh +login anonymous +force_install_dir ../Server1 +app_update 4020 validate +quit"
-      args:
-        chdir: "/home/steam/steamcmd"
-    - name: Copy Build Workaround
-      get_url:
-        url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-TTT2/master/buildWorkAround.sh"
-        dest: "/home/steam/buildWorkAround.sh"
-        owner: root
-        group: root
-        mode: '0770'
-    - name: Shell Pull Game Client
-      shell: "/home/steam/buildWorkAround.sh {{ Collection }}"
-      args:
-        chdir: "/home/steam/steamcmd"
-    - name: Copy Server config
-      get_url:
-        url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-TTT2/master/server.cfg"
-        dest: "/home/steam/Server1/garrysmod/cfg/server.cfg"
-        owner: root
-        group: root
-        mode: '0770'
-    - name: Add GameServer Local User 
-      user:
-        name: gameserver
-        comment: runs the server
-        password_lock: yes
-        system: yes
-        append: yes
-        create_home: false
-    - name: Change ownership steam dir
-      file:
-        path: "/home/steam/"
-        owner: gameserver
-        group: gameserver
-        state: directory
-        recurse: yes
-    - name: Create steam Server unitfile
-      file:
-        path: "/etc/systemd/system/Steam.service"
-        owner: root
-        group: root
-        mode: '0664'
-        state: touch
-    - name: Mash Unit file
-      lineinfile:
-        path: "/etc/systemd/system/Steam.service"
-        line: "[Unit]\nDescription=Steam scards Server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nUser=gameserver\nGroup=gameserver\nExecStart=/home/steam/Server1/srcds_run -game garrysmod +maxplayers 12 +map  {{ MAP }}  +gamemode terrortown -console +host_workshop_collection {{ Collection }}\n[Install]\nWantedBy=multi-user.target"
-    - name: just force systemd to reread configs
-      systemd:
-        daemon_reload: yes
-    - name: enable service Steam.service and ensure it is not masked
-      ignore_errors: no
-      systemd:
-        name: Steam
-        state: started
-        enabled: yes
-        masked: no
+       - glances
+      BaseDir: "/steam"
+      Collection: "2069519311"
+      TTT: "TTT2"
+      Max_players: "12"
+      MAP: "ttt_atlantis_v3"
+    tasks:
+      - name: include api variables
+        include_vars: ../crypt/steam.yaml
+      - name: packages to install
+        dnf:
+          name: "epel-release"
+          state: latest
+      - name: packages to install
+        dnf:
+          name: "{{ packages }}"
+          state: latest
+      - name: Create Base Directory
+        file:
+          path: "{{BaseDir}}"
+          state: directory
+          mode: '0755'
+      - name: Create steamcmd Directory
+        file:
+          path: "{{BaseDir}}/steamcmd"
+          state: directory
+          mode: '0755'
+      - name: Unarchive a file that is already on the remote machine
+        get_url:
+          url: http://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+          dest: "{{BaseDir}}/steamcmd/"
+      - name: Shell unzip Steamcmd
+        shell: "tar -xvzf steamcmd_linux.tar.gz && rm steamcmd_linux.tar.gz"
+        args:
+          chdir: "{{BaseDir}}/steamcmd"
+      - name: Shell Load Steamcmd
+        shell: "{{BaseDir}}/steamcmd/steamcmd.sh +quit"
+        args:
+          chdir: "{{BaseDir}}/steamcmd"
+      - name: Shell Pull Game Client
+        shell: "{{BaseDir}}/steamcmd/steamcmd.sh +login anonymous +force_install_dir ../Server1 +app_update 4020 validate +quit"
+        args:
+          chdir: "{{BaseDir}}/steamcmd"
+      - name: Copy Build Workaround
+        get_url:
+          url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-{{ TTT }}/master/buildWorkAround.sh"
+          dest: "{{BaseDir}}/buildWorkAround.sh"
+          owner: root
+          group: root
+          mode: '0770'
+      - name: Shell Pull Game Client
+        shell: "{{BaseDir}}/buildWorkAround.sh {{BaseDir}}/Server1/srcds_run {{ Collection }}"
+        args:
+          chdir: "{{BaseDir}}/steamcmd"
+      - name: Copy Server config
+        get_url:
+          url: "https://raw.githubusercontent.com/GlitchWraith/Service-GameServer-GMod-{{ TTT }}/master/server.cfg"
+          dest: "{{BaseDir}}/Server1/garrysmod/cfg/server.cfg"
+          owner: root
+          group: root
+          mode: '0770'
+      - name: Add GameServer Local User 
+        user:
+          name: gameserver
+          comment: runs the server
+          password_lock: yes
+          system: yes
+          append: yes
+          create_home: false
+      - name: Change ownership steam dir
+        file:
+          path: "{{BaseDir}}"
+          owner: gameserver
+          group: gameserver
+          state: directory
+          recurse: yes
+      - name: Create steam Server unitfile
+        file:
+          path: "/etc/systemd/system/Steam.service"
+          owner: root
+          group: root
+          mode: '0664'
+          state: touch
+      - name: Mash Unit file
+        lineinfile:
+          path: "/etc/systemd/system/Steam.service"
+          line: "[Unit]\nDescription=Steam scards Server\nAfter=network-online.target\nWants=network-online.target\n[Service]\nType=simple\nUser=gameserver\nGroup=gameserver\nExecStart={{BaseDir}}/Server1/srcds_run -game garrysmod +maxplayers {{ Max_players }} +map  {{ MAP }}  +gamemode terrortown -console +host_workshop_collection {{ Collection }}\n[Install]\nWantedBy=multi-user.target"
+      - name: just force systemd to reread configs
+        systemd:
+          daemon_reload: yes
+      - name: enable service Steam.service and ensure it is not masked
+        ignore_errors: no
+        systemd:
+          name: Steam
+          state: started
+          enabled: yes
+          masked: no

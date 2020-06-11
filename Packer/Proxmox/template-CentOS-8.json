@@ -32,7 +32,7 @@
         }
       ],
 
-      "iso_file": "local:iso/CentOS-8.1.1911-x86_64-dvd1.iso",
+      "iso_file": "Storehouse1-iso:iso/CentOS-8.1.1911-x86_64-dvd1.iso",
       "http_directory":"ks",
       "boot_wait": "10s",
       "boot_command": [
