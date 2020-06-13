@@ -171,7 +171,7 @@
           setuid: off
           logbias: throughput
           sync: standard
-          dedup: verify
+          dedup: off
     - name: Ensure Proxmox iscsi removed on Mirror
       zfs:
         name: Mirror/Proxmox_iscsi
@@ -252,7 +252,7 @@
           setuid: off
           logbias: latency
           sync: standard
-          dedup: verify
+          dedup: off
     - name: Create Owenership
       file:
         path: "/Mirror/Steam_smb"
@@ -302,7 +302,7 @@
       get_url:
         url: https://dl.min.io/server/minio/release/linux-amd64/minio
         dest: /usr/bin/minio
-        force: yes
+        force: no
         group: "root"
         owner: "root"
         mode: "0751"

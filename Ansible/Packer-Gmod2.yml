@@ -3,7 +3,7 @@
     hosts: PackerGmod-TTT2
     become: true
     vars:
-      packages:
+      dnf_packages:
         - gdb
         - expect
         - tar
@@ -13,6 +13,19 @@
         - glibc.i686
         - libstdc++.i686
         - ncurses-libs.i686
+      apt_packages:
+        - lib32gcc1
+        - wget
+        - gdb
+        - gcc-multilib
+        - expect
+        - tar
+        - wget
+        - xz-utils
+        - screen
+        - htop
+        - git
+        - python3-pip
       pip:
        - glances
       BaseDir: "/steam"
@@ -24,12 +37,19 @@
       - name: include api variables
         include_vars: ../crypt/steam.yaml
       - name: packages to install
+        when: ansible_facts['distribution'] == "CentOS"
         dnf:
           name: "epel-release"
           state: latest
       - name: packages to install
+        when: ansible_facts['distribution'] == "CentOS"
         dnf:
-          name: "{{ packages }}"
+          name: "{{ dnf_packages }}"
+          state: latest
+      - name: packages to install
+        when: ansible_facts['distribution'] == "Ubuntu"
+        apt:
+          name: "{{ apt_packages }}"
           state: latest
       - name: Create Base Directory
         file:
@@ -111,3 +131,8 @@
           state: started
           enabled: yes
           masked: no
+      - name: Disable SELinux
+        when: ansible_facts['distribution'] == "CentOS"
+        selinux:
+          state: disabled
+    # I know this is bad but currently i cant be bothered to find the problem and auto write the policy into the template 

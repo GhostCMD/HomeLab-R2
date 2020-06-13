@@ -104,6 +104,9 @@
       ignore_errors: no
       systemd:
         name: Steam
-        state: started
         enabled: yes
         masked: no
+    - name: Disable SELinux
+      selinux:
+        state: disabled
+    # I know this is bad but currently i cant be bothered to find the problem and auto write the policy into the template 

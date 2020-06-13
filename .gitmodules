@@ -4,3 +4,6 @@
 [submodule "Scripts/lancache-dns-overrides"]
 	path = Scripts/lancache-dns-overrides
 	url = https://github.com/zeropingheroes/lancache-dns-pfsense.git
+[submodule "crypt"]
+	path = crypt
+	url = git@git.ghostlink.net:GlitchWraith/crypt.git
